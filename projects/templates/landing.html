@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  * { font-family: 'Inter', sans-serif; }
+</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tesko Landing</title>
+  <link rel="stylesheet" href="{% static 'css/landing.css' %}" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg viewBox='0 0 26 26' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='2' y='2' width='10' height='10' rx='2.5' fill='%23C4510A'/><rect x='14' y='2' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.5'/><rect x='2' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.3'/><rect x='14' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.7'/></svg>">
+</head>
+<body>
+  <div class="landing-shell">
+    <header class="landing-topbar">
+      <div class="brand">
+        <div class="brand-icon">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <span class="brand-name">Tesko</span>
+      </div>
+
+      <div class="topbar-actions">
+        <a href="{% url 'login' %}" class="top-link">Login</a>
+        <a href="{% url 'signup' %}" class="top-cta">Get Started</a>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="hero-copy">
+        <span class="eyebrow">Project workspace preview</span>
+        <h1>See your project flow before you sign in.</h1>
+        <p class="hero-text">
+          A cleaner preview of Tesko's board experience with just the essentials visible.
+          After login, the full dashboard opens with all views and controls.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#" class="hero-btn primary">Start Free</a>
+          <a href="#" class="hero-btn secondary">Login</a>
+        </div>
+
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <strong>Board</strong>
+            <span>Track active work</span>
+          </div>
+          <div class="mini-stat">
+            <strong>Team</strong>
+            <span>See who owns what</span>
+          </div>
+          <div class="mini-stat">
+            <strong>Sprint</strong>
+            <span>Follow progress fast</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview-panel">
+        <div class="preview-sidebar">
+          <div class="workspace-pill">
+            <div class="ws-icon">MT</div>
+            <div>
+              <strong>My Team Workspace</strong>
+              <small>Software Project</small>
+            </div>
+          </div>
+
+          <nav class="preview-nav">
+            <a class="active" href="#">Board</a>
+            <a href="#">Backlog</a>
+            <a href="#">Members</a>
+          </nav>
+
+          <div class="sprint-card">
+            <small>Active Sprint</small>
+            <h3>Sprint 1</h3>
+            <div class="progress-bar"><span></span></div>
+            <p>40% completed</p>
+          </div>
+        </div>
+
+        <div class="preview-main">
+          <div class="preview-head">
+            <div>
+              <p class="breadcrumb">Projects / My Team Workspace</p>
+              <h2>Sprint Board</h2>
+            </div>
+            <button class="preview-btn" id="toggleViewBtn">List View</button>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <strong>5</strong>
+              <span>Total tasks</span>
+            </div>
+            <div class="stat-card">
+              <strong>1</strong>
+              <span>In progress</span>
+            </div>
+            <div class="stat-card">
+              <strong>1</strong>
+              <span>Done</span>
+            </div>
+          </div>
+
+          <div class="board-view" id="boardView">
+            <div class="board-col">
+              <div class="col-head">
+                <span>To Do</span>
+                <small>2</small>
+              </div>
+
+              <div class="task-card">
+                <div class="task-strip feature"></div>
+                <h4>Design landing experience</h4>
+                <div class="task-meta">
+                  <span class="tag feature">Feature</span>
+                  <span>TES-001</span>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="task-strip design"></div>
+                <h4>Refine hero content</h4>
+                <div class="task-meta">
+                  <span class="tag design">Design</span>
+                  <span>TES-002</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="board-col">
+              <div class="col-head">
+                <span>In Progress</span>
+                <small>1</small>
+              </div>
+
+              <div class="task-card">
+                <div class="task-strip bug"></div>
+                <h4>Fix signup validation</h4>
+                <div class="task-meta">
+                  <span class="tag bug">Bug</span>
+                  <span>TES-003</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="board-col">
+              <div class="col-head">
+                <span>Done</span>
+                <small>1</small>
+              </div>
+
+              <div class="task-card done">
+                <div class="task-strip task"></div>
+                <h4>Create board layout</h4>
+                <div class="task-meta">
+                  <span class="tag task">Task</span>
+                  <span>TES-004</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="list-view hidden" id="listView">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TES-001</td>
+                  <td>Design landing experience</td>
+                  <td>To Do</td>
+                  <td>Feature</td>
+                </tr>
+                <tr>
+                  <td>TES-002</td>
+                  <td>Refine hero content</td>
+                  <td>To Do</td>
+                  <td>Design</td>
+                </tr>
+                <tr>
+                  <td>TES-003</td>
+                  <td>Fix signup validation</td>
+                  <td>In Progress</td>
+                  <td>Bug</td>
+                </tr>
+                <tr>
+                  <td>TES-004</td>
+                  <td>Create board layout</td>
+                  <td>Done</td>
+                  <td>Task</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="landing.js"></script>
+</body>
+</html>

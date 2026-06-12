@@ -1,0 +1,493 @@
+/* ================================
+   TESKO — BACKLOG (UPGRADED UI)
+================================ */
+
+/* GLOBAL SCROLLBAR */
+
+body {
+  overflow: auto;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+.theme-icon-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+/* hover effect */
+.theme-icon-btn:hover {
+    background: var(--surface-2);
+    transform: scale(1.1);
+}
+.topbar {
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 14px;
+  flex-shrink: 0;
+}
+.sidebar-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px; border-radius: var(--radius-sm);
+  display: flex; align-items: center;
+  transition: color var(--transition), background var(--transition);
+}
+.sidebar-toggle:hover { color: var(--text-primary); background: var(--surface-2); }
+
+.breadcrumbs {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--text-muted);
+  flex-shrink: 0;
+}
+.breadcrumbs svg { color: var(--text-muted); }
+.bc-active { color: var(--text-secondary); }
+
+.topbar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+}
+
+.search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+.search-icon {
+  position: absolute; left: 10px;
+  color: var(--text-muted); pointer-events: none;
+}
+.search-input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 7px 14px 7px 32px;
+  font-size: 12px; font-family: var(--font-body);
+  color: var(--text-primary); outline: none;
+  width: 200px;
+  transition: border-color var(--transition), width var(--transition);
+}
+.search-input:focus { border-color: var(--accent); width: 240px; }
+.search-input::placeholder { color: var(--text-muted); }
+
+.notif-btn {
+  width: 34px; height: 34px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary);
+  position: relative;
+  transition: border-color var(--transition);
+}
+.notif-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.notif-dot {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: absolute; top: 6px; right: 6px;
+  border: 1.5px solid var(--surface);
+}
+
+.create-input,
+.create-select {
+  min-height: 40px;
+}
+
+.create-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.create-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.create-estimate {
+  min-width: 0;
+}
+
+#backlogModal .modal-box.modal-create {
+  width: min(640px, calc(100vw - 32px));
+  overflow-x: hidden;
+}
+
+#backlogModal .modal-header {
+  gap: 16px;
+}
+
+#backlogModal .create-form {
+  gap: 12px;
+}
+
+#backlogModal .create-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#backlogModal .create-select,
+#backlogModal .create-input {
+  min-width: 0;
+}
+
+#backlogModal .create-estimate {
+  grid-column: 1 / -1;
+}
+
+#backlogModal .create-actions {
+  flex-wrap: wrap;
+}
+.avatar-group { display: flex; }
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head); font-weight: 700; font-size: 11px;
+  color: #fff; border: 2px solid var(--surface);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.avatar-group .avatar { margin-left: -6px; }
+.avatar-group .avatar:first-child { margin-left: 0; }
+.av-blue  { background: #2563eb; }
+.av-green { background: #16a34a; }
+.av-red   { background: #dc2626; }
+.av-orange{ background: var(--accent); }
+.av-sm { width: 24px; height: 24px; font-size: 9px; }
+
+.create-btn {
+  background: var(--accent);
+  color: #fff; border: none;
+  padding: 7px 16px;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.create-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
+.create-btn:active { transform: translateY(0); }
+
+.create-select{
+  cursor: pointer;
+  width: 100%;
+}
+
+/* ── SECTION CONTAINER ───────────── */
+.backlog-section {
+  background: var(--surface);
+  border: 0.1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.backlog-section:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* ── HEADER ─────────────────────── */
+.bs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  border-bottom: 4px solid var(--border);
+  background: var(--surface);
+  transition: background var(--transition);
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.bs-header:hover {
+  background: var(--surface-2);
+}
+
+.bs-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;       
+  flex-shrink: 0;
+}
+
+.bs-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bs-chevron {
+  color: var(--text-muted);
+  transition: transform var(--transition);
+}
+
+.bs-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;   
+  overflow: visible;
+}
+
+.bs-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-3);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.bs-dates {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── BODY + SCROLL ─────────────── */
+.bs-body {
+  overflow-y: auto;
+  max-height: min(58vh, 520px);
+}
+
+.board-main {
+  overflow-y: auto;   /* make sure this isn't set to hidden */
+  flex: 1;
+}
+
+.bs-body.collapsed {
+  max-height: 0;
+  overflow: hidden;
+}
+
+/* custom scrollbar */
+.bs-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.bs-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bs-body::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 3px;
+}
+
+/* ── TABLE ─────────────────────── */
+.bl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* header */
+.bl-table th {
+  padding: 10px 16px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+/* rows */
+.bl-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* row hover (IMPORTANT 🔥) */
+.bl-row {
+  transition: background 0.2s ease, transform 0.15s ease;
+  border-left: 2px solid transparent;
+}
+
+.bl-row:hover {
+  border-left: 2px solid var(--accent);
+}
+
+.bl-row:hover td {
+  background: var(--surface-2);
+  transform: translateX(2px);
+}
+
+.bl-row:last-child td {
+  border-bottom: none;
+}
+
+/* ── ISSUE TEXT ─────────────── */
+.bl-id {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-right: 6px;
+  font-weight: 500;
+}
+
+/* ── CHECKBOX ─────────────── */
+.bl-check {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+/* ── PRIORITY ─────────────── */
+.prio-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.prio-dot.prio-high   { background: #ef4444; }
+.prio-dot.prio-medium { background: var(--accent); }
+.prio-dot.prio-low    { background: var(--text-muted); }
+
+/* ── ESTIMATION CELL ───────── */
+.est-cell {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+.type-filter {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.backlog-description {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.form-errors,
+.errorlist {
+  color: #ef4444;
+  font-size: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bl-empty-row td {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.bl-delete-btn {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.bl-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.55);
+  transform: translateY(-1px);
+}
+
+.bl-delete-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* ── TAG IMPROVEMENTS ───────── */
+.tag {
+  transition: transform 0.15s ease;
+}
+
+.bl-row:hover .tag {
+  transform: scale(1.05);
+}
+
+/* ── RESPONSIVE ───────────── */
+@media (max-width: 768px) {
+  .bs-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bs-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .bl-table td,
+  .bl-table th {
+    padding: 10px 12px;
+  }
+
+  #backlogModal .create-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  #backlogModal .modal-header,
+  #backlogModal .create-form {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  #backlogModal .create-row {
+    grid-template-columns: 1fr;
+  }
+}
