@@ -2,156 +2,860 @@
 <html lang="en">
 <head>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg viewBox='0 0 26 26' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='2' y='2' width='10' height='10' rx='2.5' fill='%23C4510A'/><rect x='14' y='2' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.5'/><rect x='2' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.3'/><rect x='14' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.7'/></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    display: flex;
-    justify-content: center;
-    padding: 2rem;
-    background: #f5f5f5;
-  }
+    :root {
+      --orange: #F26419;
+      --orange-light: rgba(242,100,25,0.10);
+      --orange-mid: rgba(242,100,25,0.18);
+      --bg: #f5f4f2;
+      --surface: #ffffff;
+      --border: #ececec;
+      --text: #1a1a1a;
+      --text-2: #555;
+      --text-3: #999;
+      --danger: #c0392b;
+      --danger-light: rgba(192,57,43,0.08);
+    }
 
-  .dropdown {
-    width: 280px;
-    background: #fff;
-    border-radius: 12px;
-    border: 0.5px solid #e5e5e5;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+    }
 
-  .dropdown-header {
-    background: #fff4ec;
-    border-bottom: 0.5px solid #fde0c8;
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+    /* ── TOP NAV ── */
+    .topnav {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .nav-logo svg { flex-shrink: 0; }
+    .nav-logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .nav-sep { flex: 1; }
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-3);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background 0.13s, color 0.13s;
+    }
+    .nav-back:hover { background: var(--orange-light); color: var(--orange); }
 
-  .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #ff7000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 15px;
-    color: #fff;
-    flex-shrink: 0;
-  }
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 24px 60px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
 
-  .user-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 2px;
-  }
+    /* ── LEFT SIDEBAR NAV ── */
+    .settings-nav {
+      position: sticky;
+      top: 80px;
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      padding: 6px 0;
+    }
+    .snav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #c0c0c0;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 16px 4px;
+    }
+    .snav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .snav-item svg { color: #bbb; transition: color 0.12s; flex-shrink: 0; }
+    .snav-item:hover { background: var(--orange-light); color: var(--orange); }
+    .snav-item:hover svg { color: var(--orange); }
+    .snav-item.active { background: var(--orange-light); color: var(--orange); font-weight: 600; }
+    .snav-item.active svg { color: var(--orange); }
+    .snav-item.danger { color: var(--danger); }
+    .snav-item.danger svg { color: #e0a09a; }
+    .snav-item.danger:hover { background: var(--danger-light); }
+    .snav-item.danger:hover svg { color: var(--danger); }
+    .snav-divider { height: 1px; background: #f2f2f2; margin: 4px 0; }
 
-  .user-email {
-    font-size: 12px;
-    color: #888;
-  }
+    /* ── MAIN CONTENT ── */
+    .content { display: flex; flex-direction: column; gap: 20px; }
 
-  .menu-section {
-    padding: 6px 0;
-  }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .page-sub { font-size: 13px; color: var(--text-3); margin-top: 3px; }
 
-  .menu-section + .menu-section {
-    border-top: 0.5px solid #f0f0f0;
-  }
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card-desc { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+    .card-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
 
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 18px;
-    cursor: pointer;
-    transition: background 0.15s;
-    text-decoration: none;
-  }
+    /* ── AVATAR SECTION ── */
+    .avatar-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 22px;
+    }
+    .big-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F26419 0%, #c44a0c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 26px;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(242,100,25,0.28);
+      position: relative;
+    }
+    .avatar-edit-btn {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--orange);
+      border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: #fff;
+    }
+    .avatar-info { flex: 1; }
+    .avatar-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .avatar-email { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+    .avatar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      background: var(--orange-light);
+      color: var(--orange);
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .btn-outline {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: border-color 0.13s, color 0.13s;
+      white-space: nowrap;
+    }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
 
-  .menu-item:hover {
-    background: #fff4ec;
-  }
+    /* ── FORM FIELDS ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.01em;
+    }
+    .field input, .field select, .field textarea {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 9px;
+      padding: 9px 13px;
+      outline: none;
+      transition: border-color 0.13s, box-shadow 0.13s;
+      width: 100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(242,100,25,0.10);
+      background: #fff;
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field-hint { font-size: 11px; color: var(--text-3); }
 
-  .menu-item-label {
-    font-size: 13px;
-    color: #2d2d2d;
-    flex: 1;
-  }
+    /* ── CARD FOOTER ── */
+    .card-footer {
+      padding: 14px 22px;
+      background: #fafafa;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-primary {
+      padding: 8px 18px;
+      border-radius: 9px;
+      border: none;
+      background: var(--orange);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.13s, transform 0.1s;
+    }
+    .btn-primary:hover { background: #d9560f; }
+    .btn-primary:active { transform: scale(0.98); }
 
-  .menu-item-label.danger {
-    color: #c0392b;
-  }
+    /* ── TOGGLE ROWS ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .toggle-row:first-child { padding-top: 0; }
+    .toggle-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .toggle-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
 
-  .chevron {
-    margin-left: auto;
-  }
-</style>
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: #e0e0e0;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--orange); }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* ── THEME PICKER ── */
+    .theme-picker {
+      display: flex;
+      gap: 10px;
+    }
+    .theme-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+    }
+    .theme-preview {
+      width: 72px;
+      height: 48px;
+      border-radius: 9px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      transition: border-color 0.13s;
+      position: relative;
+    }
+    .theme-option.active .theme-preview { border-color: var(--orange); }
+    .theme-preview.light { background: #f5f4f2; }
+    .theme-preview.dark { background: #1a1a1a; }
+    .theme-preview-bar {
+      height: 12px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+    }
+    .theme-preview.dark .theme-preview-bar { background: #2a2a2a; border-color: #333; }
+    .theme-preview-body { padding: 4px 5px; display: flex; flex-direction: column; gap: 3px; }
+    .theme-preview-line { height: 4px; background: #e8e8e8; border-radius: 2px; }
+    .theme-preview.dark .theme-preview-line { background: #3a3a3a; }
+    .theme-preview-line.accent { background: var(--orange); width: 60%; }
+    .theme-label { font-size: 11.5px; font-weight: 500; color: var(--text-2); }
+    .theme-check {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.13s, background 0.13s;
+    }
+    .theme-option.active .theme-check { border-color: var(--orange); background: var(--orange); }
+    .theme-option.active .theme-check::after {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    /* ── WORKSPACE MEMBERS ── */
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .member-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .member-row:first-child { padding-top: 0; }
+    .member-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F26419 0%, #c44a0c 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .member-avatar.alt { background: linear-gradient(135deg, #6c63ff 0%, #4a43cc 100%); }
+    .member-avatar.alt2 { background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); }
+    .member-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .member-email { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+    .member-role {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--orange-light);
+      color: var(--orange);
+      flex-shrink: 0;
+    }
+    .member-role.mod {
+      background: rgba(108,99,255,0.10);
+      color: #6c63ff;
+    }
+    .member-role.member {
+      background: #f0f0f0;
+      color: #888;
+    }
+
+    /* ── DANGER ZONE ── */
+    .danger-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .danger-row:last-child { border-bottom: none; }
+    .danger-row-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .danger-row-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+    .btn-danger {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(192,57,43,0.3);
+      background: var(--danger-light);
+      color: var(--danger);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.13s;
+    }
+    .btn-danger:hover { background: rgba(192,57,43,0.14); }
+
+    /* section panels hidden/shown */
+    .panel { display: none; }
+    .panel.active { display: flex; flex-direction: column; gap: 20px; }
+
+    /* invite input row */
+    .invite-row { display: flex; gap: 10px; }
+    .invite-row input { flex: 1; }
+    .invite-row .btn-primary { white-space: nowrap; padding: 9px 16px; }
+
+    .invite-code-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 9px;
+      padding: 10px 14px;
+    }
+    .invite-code {
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      color: var(--orange);
+      letter-spacing: 0.12em;
+      flex: 1;
+    }
+    .copy-btn {
+      border: none;
+      background: var(--orange-light);
+      color: var(--orange);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.13s;
+    }
+    .copy-btn:hover { background: var(--orange-mid); }
+  </style>
 </head>
 <body>
 
-<div class="dropdown">
+<!-- Top Nav -->
+<nav class="topnav">
+  <a class="nav-logo" href="#">
+    <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
+      <rect x="2" y="2" width="10" height="10" rx="2.5" fill="#C4510A"/>
+      <rect x="14" y="2" width="10" height="10" rx="2.5" fill="#C4510A" opacity=".5"/>
+      <rect x="2" y="14" width="10" height="10" rx="2.5" fill="#C4510A" opacity=".3"/>
+      <rect x="14" y="14" width="10" height="10" rx="2.5" fill="#C4510A" opacity=".7"/>
+    </svg>
+    <span class="nav-logo-text">Tesko</span>
+  </a>
+  <div class="nav-sep"></div>
+  <a class="nav-back" href="{% url 'home' %}" style="color: inherit; text-decoration: none;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to board
+  </a>
+</nav>
 
-  <div class="dropdown-header">
-    <div class="avatar">SM</div>
-    <div>
-      <div class="user-name">Sparsh Modi</div>
-      <div class="user-email">sparshmodi1@gmail.com</div>
+<!-- Page -->
+<div class="page">
+
+  <!-- Left nav -->
+  <nav class="settings-nav">
+    <div class="snav-label">Account</div>
+    <a class="snav-item active" onclick="switchPanel('profile', this)" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Profile
+    </a>
+    <a class="snav-item" onclick="switchPanel('notifications', this)" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+    </a>
+    <a class="snav-item" onclick="switchPanel('appearance', this)" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2"/></svg>
+      Appearance
+    </a>
+    <div class="snav-divider"></div>
+    <div class="snav-label">Workspace</div>
+    <a class="snav-item" onclick="switchPanel('workspace', this)" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Manage
+    </a>
+    <a class="snav-item" onclick="switchPanel('members', this)" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Members
+    </a>
+    <div class="snav-divider"></div>
+    <a class="snav-item danger" href="{% url 'logout' %}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Log out
+    </a>
+  </nav>
+
+  <!-- Right content -->
+  <div class="content">
+
+    <!-- PROFILE PANEL -->
+    <div class="panel active" id="panel-profile">
+      <div>
+        <div class="page-title">Profile</div>
+        <div class="page-sub">Manage your personal information</div>
+      </div>
+
+      <div class="card">
+        <div class="avatar-row">
+          <div class="big-avatar">
+            SM
+            <div class="avatar-edit-btn">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+            </div>
+          </div>
+          <div class="avatar-info">
+            <div class="avatar-name">Sparsh Modi</div>
+            <div class="avatar-email">sparshmodi1@gmail.com</div>
+            <div class="avatar-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Free plan
+            </div>
+          </div>
+          <button class="btn-outline">Change photo</button>
+        </div>
+
+        <div class="card-header" style="padding-top:0; border-top: 1px solid #f5f5f5;">
+          <div class="card-title">Personal info</div>
+          <div class="card-desc">Update your name and display details</div>
+        </div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field">
+              <label>First name</label>
+              <input type="text" value="Sparsh">
+            </div>
+            <div class="field">
+              <label>Last name</label>
+              <input type="text" value="Modi">
+            </div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" value="sparshmodi1@gmail.com">
+          </div>
+          <div class="field">
+            <label>Bio</label>
+            <textarea placeholder="Tell your team a bit about yourself…"></textarea>
+            <span class="field-hint">Shown on your profile to workspace members</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-outline">Cancel</button>
+          <button class="btn-primary">Save changes</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Change password</div>
+          <div class="card-desc">Choose a strong password to keep your account secure</div>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>Current password</label>
+            <input type="password" placeholder="••••••••">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>New password</label>
+              <input type="password" placeholder="••••••••">
+            </div>
+            <div class="field">
+              <label>Confirm password</label>
+              <input type="password" placeholder="••••••••">
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-primary">Update password</button>
+        </div>
+      </div>
     </div>
+
+    <!-- NOTIFICATIONS PANEL -->
+    <div class="panel" id="panel-notifications">
+      <div>
+        <div class="page-title">Notifications</div>
+        <div class="page-sub">Choose what you want to be notified about</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Activity</div>
+          <div class="card-desc">In-app and email notifications</div>
+        </div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Task assigned to me</div>
+              <div class="toggle-sub">Notify when a task is assigned to you</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Comments & mentions</div>
+              <div class="toggle-sub">When someone mentions you in a comment</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Status changes</div>
+              <div class="toggle-sub">When a task you're watching changes status</div>
+            </div>
+            <label class="toggle"><input type="checkbox"><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Sprint updates</div>
+              <div class="toggle-sub">Start, end, and summary of each sprint</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">New member joined</div>
+              <div class="toggle-sub">When someone joins your workspace</div>
+            </div>
+            <label class="toggle"><input type="checkbox"><div class="toggle-track"></div></label>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-primary">Save preferences</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPEARANCE PANEL -->
+    <div class="panel" id="panel-appearance">
+      <div>
+        <div class="page-title">Appearance</div>
+        <div class="page-sub">Customise how Tesko looks for you</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Theme</div>
+          <div class="card-desc">Pick your preferred colour scheme</div>
+        </div>
+        <div class="card-body">
+          <div class="theme-picker">
+            <div class="theme-option active" onclick="selectTheme(this)">
+              <div class="theme-preview light">
+                <div class="theme-preview-bar"></div>
+                <div class="theme-preview-body">
+                  <div class="theme-preview-line accent"></div>
+                  <div class="theme-preview-line"></div>
+                  <div class="theme-preview-line"></div>
+                </div>
+              </div>
+              <div class="theme-label">Light</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" onclick="selectTheme(this)">
+              <div class="theme-preview dark">
+                <div class="theme-preview-bar"></div>
+                <div class="theme-preview-body">
+                  <div class="theme-preview-line accent"></div>
+                  <div class="theme-preview-line"></div>
+                  <div class="theme-preview-line"></div>
+                </div>
+              </div>
+              <div class="theme-label">Dark</div>
+              <div class="theme-check"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-primary">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKSPACE PANEL -->
+    <div class="panel" id="panel-workspace">
+      <div>
+        <div class="page-title">Workspace</div>
+        <div class="page-sub">Manage your workspace settings</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Details</div>
+          <div class="card-desc">Update workspace name and type</div>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>Workspace name</label>
+            <input type="text" value="Frontend developers">
+          </div>
+          <div class="field">
+            <label>Type</label>
+            <select>
+              <option>Software</option>
+              <option selected>Design</option>
+              <option>Marketing</option>
+              <option>Personal</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-outline">Cancel</button>
+          <button class="btn-primary">Save changes</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Invite link</div>
+          <div class="card-desc">Share this code to let people join your workspace</div>
+        </div>
+        <div class="card-body">
+          <div class="invite-code-box">
+            <span class="invite-code">TK-A3F9PQ</span>
+            <button class="copy-btn" onclick="this.textContent='Copied!'">Copy</button>
+          </div>
+          <span class="field-hint">Anyone with this code can join. Reset it to revoke access.</span>
+        </div>
+        <div class="card-footer">
+          <button class="btn-outline">Reset invite code</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="border-bottom:none;">
+          <div class="card-title" style="color:var(--danger);">Danger zone</div>
+        </div>
+        <div class="danger-row">
+          <div>
+            <div class="danger-row-label">Delete workspace</div>
+            <div class="danger-row-sub">Permanently remove this workspace and all its data</div>
+          </div>
+          <button class="btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBERS PANEL -->
+    <div class="panel" id="panel-members">
+      <div>
+        <div class="page-title">Members</div>
+        <div class="page-sub">Manage who has access to this workspace</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Invite member</div>
+        </div>
+        <div class="card-body">
+          <div class="invite-row">
+            <div class="field" style="flex:1;gap:0">
+              <input type="email" placeholder="colleague@email.com">
+            </div>
+            <button class="btn-primary">Send invite</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">3 members</div>
+        </div>
+        <div class="card-body" style="gap:0">
+          <div class="member-row">
+            <div class="member-avatar">SM</div>
+            <div>
+              <div class="member-name">Sparsh Modi</div>
+              <div class="member-email">sparshmodi1@gmail.com</div>
+            </div>
+            <span class="member-role">Admin</span>
+          </div>
+          <div class="member-row">
+            <div class="member-avatar alt">RK</div>
+            <div>
+              <div class="member-name">Rahul Kumar</div>
+              <div class="member-email">rahul@example.com</div>
+            </div>
+            <span class="member-role mod">Editor</span>
+          </div>
+          <div class="member-row">
+            <div class="member-avatar alt2">PV</div>
+            <div>
+              <div class="member-name">Priya Verma</div>
+              <div class="member-email">priya@example.com</div>
+            </div>
+            <span class="member-role member">Viewer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <div class="menu-section">
-    <a href="#" class="menu-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-      <span class="menu-item-label">Profile</span>
-    </a>
-
-    <a href="#" class="menu-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m8.66-13-1.73 1M5.07 17l-1.73 1M20.66 17l-1.73-1M5.07 7 3.34 6M22 12h-2M4 12H2"/>
-      </svg>
-      <span class="menu-item-label">Account settings</span>
-    </a>
-
-    <a href="#" class="menu-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2m11-11h-2M3 12H1"/>
-      </svg>
-      <span class="menu-item-label">Theme</span>
-      <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
-    </a>
-  </div>
-
-  <div class="menu-section">
-    <a href="#" class="menu-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <span class="menu-item-label">Switch account</span>
-    </a>
-
-    <a href="{% url 'logout' %}" class="menu-item">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-      </svg>
-      <span class="menu-item-label danger">Log out</span>
-    </a>
-  </div>
-
 </div>
+
+<script>
+  function switchPanel(name, el) {
+    event.preventDefault();
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.snav-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+
+  function selectTheme(el) {
+    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
 
 </body>
 </html>

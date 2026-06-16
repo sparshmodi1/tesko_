@@ -25,25 +25,84 @@ document.querySelectorAll('.kanban-col').forEach(col => {
 function drop(e, colId) {
   e.preventDefault();
   if (!draggedCard) return;
-  const target = document.getElementById('cards-' + colId);
+
+  // map status value → actual DOM id
+  const idMap = {
+    'todo':        'todo',
+    'in_progress': 'inprogress',
+    'in_review':   'inreview',
+    'done':        'done'
+  };
+
+  const domId = idMap[colId];
+  const target = document.getElementById('cards-' + domId);
+  if (!target) return;  // safety check
+
   target.appendChild(draggedCard);
   draggedCard.dataset.col = colId;
   draggedCard.classList.remove('dragging');
   document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+
   updateCounts();
-  showToast('Task moved to ' + colId
-    .replace('inprogress', 'In Progress')
-    .replace('inreview',   'In Review')
-    .replace('todo',       'To Do')
-    .replace('done',       'Done'));
+
+  // save to backend
+  const rawId = draggedCard.dataset.id.replace('TES-', '').replace(/^0+/, '');
+  fetch(`/task/${rawId}/update-status/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({ status: colId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Moved to ' + colId
+        .replace('in_progress', 'In Progress')
+        .replace('in_review',   'In Review')
+        .replace('todo',        'To Do')
+        .replace('done',        'Done'));
+    } else {
+      showToast('Failed to save');
+    }
+  })
+  .catch(() => showToast('Network error'));
+
   draggedCard = null;
 }
 
 function updateCounts() {
-  ['todo', 'inprogress', 'inreview', 'done'].forEach(col => {
-    const count = document.querySelectorAll(`#cards-${col} .kanban-card`).length;
-    document.getElementById('count-' + col).textContent = count;
+  const cols = [
+    { domId: 'todo',        statKey: 'todo'        },
+    { domId: 'inprogress',  statKey: 'in_progress' },
+    { domId: 'inreview',    statKey: 'in_review'   },
+    { domId: 'done',        statKey: 'done'        },
+  ];
+
+  let total = 0;
+  cols.forEach(({ domId, statKey }) => {
+    const cards = document.querySelectorAll(`#cards-${domId} .kanban-card`);
+    const count = cards.length;
+    total += count;
+
+    // column header badge
+    const badge = document.getElementById('count-' + domId);
+    if (badge) badge.textContent = count;
+
+    // stats row
+    const statMap = {
+      'todo':        '.count-todo',
+      'in_progress': '.count-progress',
+      'in_review':   '.count-review',
+      'done':        '.count-done',
+    };
+    const statEl = document.querySelector(statMap[statKey]);
+    if (statEl) statEl.textContent = count;
   });
+
+  const totalEl = document.querySelector('.count-total');
+  if (totalEl) totalEl.textContent = total;
 }
 
 

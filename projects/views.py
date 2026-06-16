@@ -12,6 +12,8 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
+from django.utils import timezone
+from .models import createTask, TaskComment
 
 from .forms import BacklogTaskForm, CreateTaskForm, CreateWorkspaceForm, EditTaskForm
 from .models import GitHubRepositoryConnection, Workspace, createTask
@@ -135,7 +137,7 @@ def home_view(request):
 def roadmap_view(request):
     return render(request, 'roadmap.html')
 
-@login_required
+
 def landing_view(request):
     return render(request, 'landing.html')
 
@@ -167,10 +169,9 @@ def backlog_view(request):
 
     if request.method == "POST" and form.is_valid():
         task = form.save(commit=False)
-
         # attach task to current workspace
         task.workspace = workspace
-
+        task.in_backlog = True
         task.save()
 
         return redirect('backlog')
@@ -178,10 +179,9 @@ def backlog_view(request):
     users = workspace.members.all()
 
     tasks = createTask.objects.filter(
-        workspace=workspace
-    ).select_related(
-        'assignee'
-    ).order_by('id')
+        workspace=workspace,
+        in_backlog=True
+    ).select_related('assignee').order_by('id')
 
     Workspaces = Workspace.objects.filter(
         members=request.user
@@ -195,6 +195,36 @@ def backlog_view(request):
         'backlog_tasks': tasks,
         'backlog_count': tasks.count(),
     })
+    
+@login_required
+def edit_task(request, task_id):
+    task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+    if request.method == 'POST':
+        task.title       = request.POST.get('title', task.title)
+        task.type        = request.POST.get('type', task.type)
+        task.priority    = request.POST.get('priority', task.priority)
+        task.status      = request.POST.get('status', task.status)
+        task.estimate    = request.POST.get('estimate', task.estimate)
+        task.description = request.POST.get('description', task.description)
+        assignee_id = request.POST.get('assignee')
+        if assignee_id:
+            task.assignee_id = assignee_id
+        task.save()
+    return redirect('backlog')
+    
+@login_required
+def update_task_status(request, task_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        valid = ['todo', 'in_progress', 'in_review', 'done']
+        if new_status not in valid:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+        task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+        task.status = new_status
+        task.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @login_required
 def code_view(request):
@@ -203,20 +233,28 @@ def code_view(request):
     })
 
 @login_required
-def project_pages(request):
-    return render(request, 'project_pages.html')
-
-@login_required
 def project_settings(request):
     return render(request, 'settings.html')
 
 @login_required
 def members(request):
-    users = User.objects.all()
+    workspace_id = request.session.get('workspace_id')
+    if not workspace_id:
+        return redirect('onboard')
+
+    workspace = get_object_or_404(Workspace, id=workspace_id, members=request.user)
+    users = workspace.members.all()
+
     for user in users:
-        user.total_tasks = createTask.objects.filter(assignee=user).count()
-    
-    return render(request, 'members.html', {'users': users})
+        user.total_tasks = createTask.objects.filter(
+            assignee=user,
+            workspace=workspace
+        ).count()
+
+    return render(request, 'members.html', {
+        'workspace': workspace,
+        'users': users,
+    })
 
 @login_required
 def time_tracking(request):
@@ -238,11 +276,11 @@ def board_view(request):
         ).first()
 
     if not workspace:
-        workspace = Workspace.objects.filter(
-            members=request.user
-        ).first()
-        if workspace:
-            request.session['workspace_id'] = workspace.id
+        workspace = Workspace.objects.filter(creator=request.user).first()
+    if not workspace:
+        workspace = Workspace.objects.filter(members=request.user).first()
+    if workspace:
+        request.session['workspace_id'] = workspace.id
 
     if not workspace:
         return redirect('onboard')
@@ -255,16 +293,19 @@ def board_view(request):
     if request.method == "POST" and request.POST.get('form_type') == 'create_task' and create_form.is_valid():
         task = create_form.save(commit=False)
         task.workspace = workspace  
+        task.in_backlog = False
         task.save()
         return redirect('home')
 
     users = workspace.members.all()
-    tasks = createTask.objects.filter(workspace=workspace)
+    tasks = createTask.objects.filter(workspace=workspace,in_backlog=False)
     Workspaces = Workspace.objects.filter(members=request.user).distinct()
+    Workspaces_creator = Workspace.objects.filter(creator = request.user).distinct()
 
     return render(request, 'home.html', {
         'workspace': workspace,
         'Workspaces': Workspaces,
+        'workspaces_creator': Workspaces_creator,
         'create_form': create_form,
         'edit_form': EditTaskForm(),
         'users': users,
@@ -288,6 +329,12 @@ def switch_workspace(request, workspace_id):
         request.session['workspace_id'] = workspace.id
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+@login_required
+def move_to_board(request, task_id):
+    task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+    task.in_backlog = False
+    task.save()
+    return redirect('backlog')
 
 @login_required
 def saveView(request, task_id):
@@ -317,12 +364,11 @@ def onboard(request):
         
         elif form_type == 'join_workspace':
             invite_code = request.POST.get('invite_code', '').strip().upper()
-            invite_link = request.POST.get('invite_link', '').strip()
             
             code = invite_code
-            if not code and invite_link:
+            if not code:
                 import re
-                match = re.search(r'/join/([A-Z0-9]+)', invite_link, re.IGNORECASE)
+                match = re.search(r'/join/([A-Z0-9]+)', re.IGNORECASE)
                 if match:
                     code = match.group(1).upper()
             
@@ -344,12 +390,11 @@ def onboard(request):
 @require_POST
 def join_workspace(request):
     invite_code = request.POST.get('invite_code', '').strip().upper()
-    invite_link = request.POST.get('invite_link', '').strip()
     
     code = invite_code
-    if not code and invite_link:
+    if not code:
         import re
-        match = re.search(r'/join/([A-Z0-9]+)', invite_link, re.IGNORECASE)
+        match = re.search(r'/join/([A-Z0-9]+)', re.IGNORECASE)
         if match:
             code = match.group(1).upper()
     
@@ -470,3 +515,98 @@ def create_workspace(request):
         form = CreateWorkspaceForm()
 
     return render(request, 'onboard.html', {'form': form})
+
+@login_required
+def leave_workspace(request, workspace_id):
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    if request.method == 'POST':
+        workspace.members.remove(request.user)
+
+        next_workspace = Workspace.objects.filter(members=request.user).exclude(id=workspace_id).first()
+        
+        if next_workspace:
+            return redirect('switch_workspace', workspace_id=next_workspace.id)
+        else:
+            return redirect('onboard')
+    
+    return redirect('home', workspace_id=workspace.id)
+        
+
+@login_required
+def comments_view(request):
+    workspace_id = request.session.get('workspace_id')
+    workspace = get_object_or_404(Workspace, id=workspace_id, members=request.user)
+
+    tasks = createTask.objects.filter(workspace=workspace)
+    today = timezone.now().date()
+
+    selected_task = None
+    task_id = request.GET.get('task_id')
+    if task_id:
+        selected_task = get_object_or_404(createTask, id=task_id, workspace=workspace)
+
+    overdue_tasks = tasks.filter(due_date__lt=today).exclude(status='done')
+    due_today_tasks = tasks.filter(due_date=today)
+    upcoming_tasks = tasks.filter(due_date__gt=today).order_by('due_date')[:5]
+
+    return render(request, 'comments.html', {
+        'workspace': workspace,
+        'tasks': tasks,
+        'selected_task': selected_task,
+        'overdue_tasks': overdue_tasks,
+        'due_today_tasks': due_today_tasks,
+        'upcoming_tasks': upcoming_tasks,
+    })
+
+
+@login_required
+def add_comment(request, task_id):
+    task = get_object_or_404(createTask, id=task_id)
+    if request.method == 'POST':
+        text = request.POST.get('text', '').strip()
+        if text:
+            TaskComment.objects.create(task=task, user=request.user, text=text)
+    return redirect(f"{request.META.get('HTTP_REFERER', '/')}#comments")
+
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(TaskComment, id=comment_id, user=request.user)
+    task_id = comment.task.id
+    if request.method == 'POST':
+        comment.delete()
+    return redirect(f'/comments/?task_id={task_id}')
+
+
+@login_required
+def set_due_date(request, task_id):
+    task = get_object_or_404(createTask, id=task_id)
+    if request.method == 'POST':
+        due_date = request.POST.get('due_date')
+        task.due_date = due_date if due_date else None
+        task.save()
+    return redirect(f'/comments/?task_id={task_id}')
+
+
+@login_required
+def clear_due_date(request, task_id):
+    task = get_object_or_404(createTask, id=task_id)
+    task.due_date = None
+    task.save()
+    return redirect(f'/comments/?task_id={task_id}')
+
+
+@login_required
+def delete_workspace(request, workspace_id):
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    
+    if request.method == 'POST':
+        if request.user == workspace.creator:
+            workspace.delete()
+            next_workspace = Workspace.objects.filter(members=request.user).first()
+            if next_workspace:
+                return redirect('switch_workspace', workspace_id=next_workspace.id)
+            else:
+                return redirect('onboard')
+    
+    return redirect('home')

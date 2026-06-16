@@ -58,7 +58,7 @@
       <div class="brand-icon"><svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="10" height="10" rx="2.5" fill="#F26419"/><rect x="14" y="2" width="10" height="10" rx="2.5" fill="#F26419" opacity=".5"/><rect x="2" y="14" width="10" height="10" rx="2.5" fill="#F26419" opacity=".3"/><rect x="14" y="14" width="10" height="10" rx="2.5" fill="#F26419" opacity=".7"/></svg></div>
       <div class="brand-right"><span class="brand-name">Tesko</span><button class="theme-icon-btn" onclick="toggleTheme()" id="themeBtn"></button></div>
     </div>
-    <div class="workspace-pill"><div class="ws-icon">MT</div><div class="ws-meta"><span class="ws-name">My Team Workspace</span><span class="ws-type">Software Project</span></div></div>
+  
     <nav class="sidebar-nav">
       <div class="nav-section-label">PROJECT</div>
       <a href="{% url 'roadmap' %}" class="nav-item {% if page_id == 'board' %}active{% endif %}">
@@ -68,10 +68,16 @@
       <a href="{%url 'home' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="11" width="6" height="4" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>Board
       <a href="{%url 'backlog' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Backlog
       <a href="{%url 'code' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2v12M4 2l3 3M4 2L1 5M12 14V2M12 14l-3-3M12 14l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Code</a>
-      <a href="{%url 'projectpages' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.4"/><path d="M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Project Pages</a>
+      <a href="{% url 'onboard' %}" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-2.2 2.7-4 6-4s6 1.8 6 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Workspaces
+      </a>
       <div class="nav-section-label" style="margin-top:20px">TEAM</div>
       <a href="{%url 'members' %}" class="nav-item active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-2.2 2.2-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13 14c0-1.2-.8-2.3-2-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Members<span class="nav-badge">{{users.count}}</span></a>
-      <a href="{%url 'timetracking' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v4l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Time Tracking</a>
+      <a href="{% url 'comments' %}" class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Comments
+      </a>
       <div class="nav-divider"></div>
       <a href="{%url 'projectsettings' %}" class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.54 11.54l1.41 1.41M3.05 12.95l1.42-1.42M11.54 4.46l1.41-1.41" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4"/></svg>Project Settings</a>
       <a href="{% url 'logout' %}" class="nav-item nav-logout"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Logout</a>

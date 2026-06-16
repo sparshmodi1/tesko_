@@ -34,14 +34,6 @@
       </div>
     </div>
 
-    <div class="workspace-pill">
-      <div class="ws-icon">MT</div>
-      <div class="ws-meta">
-        <span class="ws-name">My Team Workspace</span>
-        <span class="ws-type">Software Project</span>
-      </div>
-    </div>
-
     <nav class="sidebar-nav">
       <div class="nav-section-label">PROJECT</div>
       <a href="{% url 'roadmap' %}" class="nav-item">
@@ -61,18 +53,18 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2v12M4 2l3 3M4 2L1 5M12 14V2M12 14l-3-3M12 14l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Code
       </a>
-      <a href="{% url 'projectpages' %}" class="nav-item">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.4"/><path d="M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Project Pages
+      <a href="{% url 'onboard' %}" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-2.2 2.7-4 6-4s6 1.8 6 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Workspaces
       </a>
       <div class="nav-section-label" style="margin-top:20px">TEAM</div>
       <a href="{% url 'members' %}" class="nav-item">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-2.2 2.2-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13 14c0-1.2-.8-2.3-2-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Members
       </a>
-      <a href="{% url 'timetracking' %}" class="nav-item">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v4l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Time Tracking
+      <a href="{% url 'comments' %}" class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Comments
       </a>
       <div class="nav-divider"></div>
       <a href="{% url 'projectsettings' %}" class="nav-item">
@@ -93,7 +85,7 @@
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
       <div class="breadcrumbs">
-        <span>My Team Workspace</span>
+        <span>{{workspace.workspaceName}}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6 4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         <span class="bc-active">Backlog</span>
       </div>
@@ -130,7 +122,7 @@
       <div class="backlog-section backlog-only">
         <div class="bs-header" onclick="toggleSection('backlogItems')">
           <div class="bs-left">
-            <svg class="bs-chevron" id="chev-backlogItems" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5.5L7 8.5L10 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg class="bs-chevron" id="chev-backlogItems" width="14" height="14" viewBox="0 0 14 14"  fill="none"><path d="M4 5.5L7 8.5L10 5.5" stroke="currentColor" stroke-width="1.5"      stroke-linecap="round"/></svg>
             <span class="bs-title">Backlog</span>
             <span class="bs-count" id="backlogCount">{{ backlog_count }} issue{{ backlog_count|pluralize }}</span>
           </div>
@@ -146,13 +138,13 @@
                 <th>Assignee</th>
                 <th>Status</th>
                 <th>Est.</th>
-                <th style="width:72px">Action</th>
+                <th style="width:260px">Action</th>
               </tr>
             </thead>
             <tbody id="backlogBody">
               {% for task in backlog_tasks %}
-              <tr class="bl-row" data-type="{{ task.type }}" data-task-id="{{ task.id }}" data-delete-url="{% url 'delete_task' task.id %}">
-                <td><input type="checkbox" class="bl-check" aria-label="Select TES-{{ task.id|stringformat:'03d' }}"></td>
+              <tr class="bl-row" data-type="{{ task.type }}" data-task-id="{{ task.id }}" data-delete-url="{%url 'delete_task' task.id %}">
+                <td><input type="checkbox" class="bl-check" aria-label="Select TES-{{ task.id|      stringformat:'03d' }}"></td>
                 <td><span class="bl-id">TES-{{ task.id|stringformat:"03d" }}</span> {{ task.title }}</td>
                 <td><span class="tag tag-{{ task.type }}">{{ task.get_type_display }}</span></td>
                 <td>
@@ -171,9 +163,25 @@
                 </td>
                 <td class="est-cell">{{ task.estimate|default:"-" }}</td>
                 <td>
-                  <button class="bl-delete-btn" type="button" onclick="deleteBacklogTask(this)" aria-label="Delete TES-{{ task.id|stringformat:'03d' }}">
-                    Delete
-                  </button>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <button class="bl-delete-btn" type="button" onclick="deleteBacklogTask(this)"       aria-label="Delete TES-{{ task.id|stringformat:'03d' }}">
+                      Delete
+                    </button>
+                    <button class="bl-edit-btn" type="button" onclick="openEditModal(
+                      {{ task.id }},
+                      '{{ task.title|escapejs }}',
+                      '{{ task.type }}',
+                      '{{ task.priority }}',
+                      '{{ task.status }}',
+                      '{{ task.assignee.id }}',
+                      '{{ task.estimate|default:'' }}',
+                      '{{ task.description|default:''|escapejs }}'
+                    )">Edit</button>
+                    <form method="POST" action="{% url 'move_to_board' task.id %}" style="margin:0">
+                      {% csrf_token %}
+                      <button type="submit" class="bl-move-btn">Move to Board</button>
+                    </form>
+                  </div>
                 </td>
               </tr>
               {% empty %}
@@ -248,5 +256,74 @@
 </script>
 {% endif %}
 <script src="{% static 'js/backlog.js' %}?v=2"></script>
+<div class="modal-overlay hidden" id="editModal" onclick="this.classList.add('hidden')">
+  <div class="modal-box modal-create" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span style="font-weight:600;font-size:16px">Edit Issue</span>
+      <button class="modal-close" type="button" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+    </div>
+    <form method="POST" id="editForm" action="">
+      {% csrf_token %}
+      <div class="create-form">
+
+        <input type="text" class="create-input" placeholder="Issue title *" id="editTitle" name="title" required>
+
+        <div class="create-row" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="create-field">
+            <label class="create-label">Type</label>
+            <select class="create-select" id="editType" name="type">
+              <option value="feature">Feature</option>
+              <option value="bug">Bug</option>
+              <option value="design">Design</option>
+              <option value="task">Task</option>
+            </select>
+          </div>
+          <div class="create-field">
+            <label class="create-label">Priority</label>
+            <select class="create-select" id="editPriority" name="priority">
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div class="create-field">
+            <label class="create-label">Status</label>
+            <select class="create-select" id="editStatus" name="status">
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="in_review">In Review</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div class="create-field">
+            <label class="create-label">Assignee</label>
+            <select class="create-select" id="editAssignee" name="assignee">
+              {% for user in users %}
+                <option value="{{ user.id }}">
+                  {{ user.first_name|default:user.username }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="create-field">
+          <label class="create-label">Estimate</label>
+          <input type="text" class="create-input" placeholder="e.g. 3h, 30m" id="editEstimate" name="estimate">
+        </div>
+
+        <div class="create-field">
+          <label class="create-label">Description</label>
+          <textarea class="create-input backlog-description" placeholder="Description (optional)" id="editDescription" name="description"></textarea>
+        </div>
+
+        <div class="create-actions">
+          <button class="secondary-btn" type="button" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+          <button class="create-btn" type="submit">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 </body>
 </html>

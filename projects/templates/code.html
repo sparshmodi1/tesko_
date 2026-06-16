@@ -698,16 +698,6 @@
       </div>
     </div>
 
-    <div class="ws-wrapper">
-      <div class="workspace-pill" id="wsPill">
-        <div class="ws-icon">MT</div>
-        <div class="ws-meta">
-          <span class="ws-name">My Team Workspace</span>
-          <span class="ws-type">Software Project</span>
-        </div>
-      </div>
-    </div>
-
     <nav class="sidebar-nav">
       <div class="nav-section-label">PROJECT</div>
       <a href="{% url 'roadmap' %}" class="nav-item {% if page_id == 'board' %}active{% endif %}">
@@ -726,18 +716,18 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2v12M4 2l3 3M4 2L1 5M12 14V2M12 14l-3-3M12 14l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Code
       </a>
-      <a href="{% url 'projectpages' %}" class="nav-item">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.4"/><path d="M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Project Pages
+      <a href="{% url 'onboard' %}" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-2.2 2.7-4 6-4s6 1.8 6 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Workspaces
       </a>
       <div class="nav-section-label" style="margin-top:20px">TEAM</div>
       <a href="{% url 'members' %}" class="nav-item">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-2.2 2.2-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13 14c0-1.2-.8-2.3-2-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Members
       </a>
-      <a href="{% url 'timetracking' %}" class="nav-item">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v4l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Time Tracking
+      <a href="{% url 'comments' %}" class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Comments
       </a>
       <div class="nav-divider"></div>
       <a href="{% url 'projectsettings' %}" class="nav-item">
@@ -762,7 +752,7 @@
         <svg width="18" height="18" fill="none"><path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
       <div class="breadcrumbs">
-        <span>My Team Workspace</span>
+        <span>{{workspace.workspaceName}}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6 4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         <span class="bc-active">Code</span>
       </div>

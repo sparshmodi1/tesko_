@@ -2,214 +2,1109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-  * { font-family: 'Inter', sans-serif; }
-</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tesko Landing</title>
-  <link rel="stylesheet" href="{% static 'css/landing.css' %}" />
+  <title>Tesko — Ship faster, together.</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg viewBox='0 0 26 26' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='2' y='2' width='10' height='10' rx='2.5' fill='%23C4510A'/><rect x='14' y='2' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.5'/><rect x='2' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.3'/><rect x='14' y='14' width='10' height='10' rx='2.5' fill='%23C4510A' opacity='.7'/></svg>">
+  <link rel="stylesheet" href="{% static 'css/landing.css' %}" />
+<style>
+  :root {
+    --accent: #F26419;
+    --accent-dark: #d4521a;
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface-2: #1a1a1a;
+    --surface-3: #222222;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(242,100,25,0.4);
+    --text: #f0f0f0;
+    --text-muted: #666;
+    --text-secondary: #999;
+    --radius: 14px;
+    --font: 'Inter', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, opacity 0.2s;
+    mix-blend-mode: normal;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid rgba(242,100,25,0.5);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.08s ease, width 0.2s, height 0.2s, border-color 0.2s;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(10,10,10,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.3s;
+  }
+  .topbar.scrolled { padding: 12px 40px; }
+
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .brand-icon {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 3px; width: 22px; height: 22px;
+  }
+  .brand-icon span {
+    border-radius: 3px;
+    background: var(--accent);
+    display: block;
+  }
+  .brand-icon span:nth-child(2) { opacity: 0.5; }
+  .brand-icon span:nth-child(3) { opacity: 0.3; }
+  .brand-icon span:nth-child(4) { opacity: 0.7; }
+  .brand-name {
+    font-size: 18px; font-weight: 800;
+    color: var(--text); letter-spacing: -0.5px;
+  }
+
+  .topbar-nav { display: flex; align-items: center; gap: 6px; }
+  .topbar-nav a {
+    font-size: 13px; color: var(--text-secondary);
+    text-decoration: none; padding: 7px 14px;
+    border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
+  }
+  .topbar-nav a:hover { color: var(--text); background: var(--surface-2); }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-ghost {
+    font-size: 13px; font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none; padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-hover); }
+  .btn-primary {
+    font-size: 13px; font-weight: 600;
+    color: #fff; text-decoration: none;
+    padding: 8px 18px;
+    background: var(--accent);
+    border-radius: 8px;
+    border: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* animated grid bg */
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(242,100,25,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,100,25,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridPan 20s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes gridPan {
+    0% { background-position: 0 0; }
+    100% { background-position: 60px 60px; }
+  }
+
+  /* glowing orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: rgba(242,100,25,0.12);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: rgba(139,92,246,0.08);
+    bottom: -50px; right: -50px;
+    animation-delay: -3s;
+  }
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: rgba(242,100,25,0.06);
+    top: 50%; left: 60%;
+    animation-delay: -5s;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px; text-transform: uppercase;
+    background: rgba(242,100,25,0.1);
+    border: 1px solid rgba(242,100,25,0.2);
+    padding: 6px 14px; border-radius: 100px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+    position: relative; z-index: 2;
+  }
+  .eyebrow-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero-title {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -3px;
+    max-width: 900px;
+    animation: fadeUp 0.6s 0.1s ease both;
+    position: relative; z-index: 2;
+  }
+  .hero-title .accent-word {
+    color: var(--accent);
+    position: relative;
+    display: inline-block;
+  }
+  .hero-title .accent-word::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    transform: scaleX(0);
+    animation: underlineIn 0.5s 0.8s ease forwards;
+  }
+  @keyframes underlineIn {
+    to { transform: scaleX(1); }
+  }
+
+  .hero-sub {
+    font-size: 17px; color: var(--text-secondary);
+    max-width: 520px; line-height: 1.7;
+    margin-top: 24px;
+    animation: fadeUp 0.6s 0.2s ease both;
+    position: relative; z-index: 2;
+  }
+
+  .hero-cta-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 36px;
+    animation: fadeUp 0.6s 0.3s ease both;
+    position: relative; z-index: 2;
+  }
+  .cta-big {
+    font-size: 15px; font-weight: 700;
+    color: #fff; text-decoration: none;
+    padding: 14px 28px;
+    background: var(--accent);
+    border-radius: 12px;
+    border: none; cursor: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 0 0 0 rgba(242,100,25,0.4);
+  }
+  .cta-big:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(242,100,25,0.3);
+  }
+  .cta-secondary {
+    font-size: 14px; font-weight: 500;
+    color: var(--text-secondary); text-decoration: none;
+    display: flex; align-items: center; gap: 6px;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.2s;
+  }
+  .cta-secondary:hover { color: var(--text); border-color: var(--border-hover); }
+
+  .hero-trust {
+    display: flex; align-items: center; gap: 16px;
+    margin-top: 48px;
+    animation: fadeUp 0.6s 0.4s ease both;
+    position: relative; z-index: 2;
+    color: var(--text-muted); font-size: 12px;
+  }
+  .trust-avatars { display: flex; }
+  .trust-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface-3);
+    border: 2px solid var(--bg);
+    margin-left: -8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+  .trust-av:first-child { margin-left: 0; }
+  .trust-av.a1 { background: #2563eb; color: #fff; }
+  .trust-av.a2 { background: #16a34a; color: #fff; }
+  .trust-av.a3 { background: var(--accent); color: #fff; }
+  .trust-av.a4 { background: #8b5cf6; color: #fff; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LIVE BOARD PREVIEW ── */
+  .preview-wrap {
+    margin-top: 80px;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s 0.5s ease both;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .preview-glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(242,100,25,0.3), rgba(139,92,246,0.15), transparent);
+    z-index: -1;
+    filter: blur(1px);
+  }
+  .preview-window {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  }
+  .preview-titlebar {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tb-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .tb-dot.red { background: #ef4444; }
+  .tb-dot.yellow { background: #f59e0b; }
+  .tb-dot.green { background: #22c55e; }
+  .tb-url {
+    flex: 1; text-align: center;
+    font-size: 11px; color: var(--text-muted);
+    background: var(--surface-3);
+    border-radius: 6px; padding: 4px 12px;
+    max-width: 240px; margin: 0 auto;
+  }
+  .preview-body {
+    display: flex; height: 380px;
+  }
+  .preview-sidebar {
+    width: 180px; flex-shrink: 0;
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .ps-ws {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px; border-radius: 8px;
+    margin-bottom: 12px;
+    background: var(--surface-3);
+  }
+  .ps-ws-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: #fff;
+  }
+  .ps-ws-name { font-size: 11px; font-weight: 600; color: var(--text); }
+  .ps-ws-type { font-size: 9px; color: var(--text-muted); }
+  .ps-label {
+    font-size: 9px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase;
+    padding: 4px 8px; margin-top: 8px;
+  }
+  .ps-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 7px;
+    font-size: 12px; color: var(--text-secondary);
+    cursor: none; transition: all 0.15s;
+  }
+  .ps-item:hover, .ps-item.active {
+    background: rgba(242,100,25,0.1);
+    color: var(--accent);
+  }
+  .ps-item svg { flex-shrink: 0; opacity: 0.6; }
+  .ps-item.active svg { opacity: 1; }
+
+  .preview-main { flex: 1; padding: 16px; overflow: hidden; }
+  .pm-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .pm-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .pm-date { font-size: 10px; color: var(--text-muted); }
+  .pm-stats {
+    display: flex; gap: 8px; margin-bottom: 14px;
+  }
+  .pm-stat {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .pm-stat-val { font-size: 16px; font-weight: 800; color: var(--text); }
+  .pm-stat-val.orange { color: var(--accent); }
+  .pm-stat-val.green { color: #22c55e; }
+  .pm-stat-label { font-size: 9px; color: var(--text-muted); }
+
+  .pm-cols { display: flex; gap: 10px; height: 240px; }
+  .pm-col {
+    flex: 1; display: flex; flex-direction: column; gap: 6px;
+    overflow: hidden;
+  }
+  .pm-col-head {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 2px; margin-bottom: 4px;
+  }
+  .col-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .col-dot.todo { background: #6366f1; }
+  .col-dot.prog { background: var(--accent); }
+  .col-dot.review { background: #f59e0b; }
+  .col-dot.done { background: #22c55e; }
+  .pm-col-name { font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+  .pm-col-count {
+    font-size: 9px; color: var(--text-muted);
+    background: var(--surface-3);
+    padding: 1px 6px; border-radius: 10px;
+    margin-left: auto;
+  }
+
+  .pm-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 11px;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .pm-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  .pm-card-strip {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .pm-card-strip.feature { background: #6366f1; }
+  .pm-card-strip.bug { background: #ef4444; }
+  .pm-card-strip.design { background: #8b5cf6; }
+  .pm-card-strip.task { background: var(--accent); }
+  .pm-card-title { color: var(--text); font-weight: 500; line-height: 1.4; margin-top: 4px; }
+  .pm-card-meta {
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 8px;
+  }
+  .pm-tag {
+    font-size: 9px; font-weight: 600;
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .pm-tag.feature { background: rgba(99,102,241,0.15); color: #818cf8; }
+  .pm-tag.bug { background: rgba(239,68,68,0.15); color: #f87171; }
+  .pm-tag.design { background: rgba(139,92,246,0.15); color: #a78bfa; }
+  .pm-tag.task { background: rgba(242,100,25,0.15); color: var(--accent); }
+  .pm-card-id { font-size: 9px; color: var(--text-muted); margin-left: auto; }
+  .pm-av {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 7px; font-weight: 800; color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* animated card that moves between columns */
+  .pm-card.animating {
+    animation: cardSlide 3s ease-in-out infinite;
+  }
+  @keyframes cardSlide {
+    0%, 40%  { opacity: 1; transform: translateY(0); }
+    50%      { opacity: 0; transform: translateY(-10px); }
+    51%      { opacity: 0; transform: translateY(10px); }
+    60%, 100%{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── FEATURES SECTION ── */
+  .section {
+    padding: 100px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative; z-index: 2;
+  }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 600;
+    color: var(--accent); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800; letter-spacing: -1.5px;
+    line-height: 1.1; max-width: 600px;
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 16px; color: var(--text-secondary);
+    max-width: 480px; line-height: 1.7;
+    margin-bottom: 60px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: rgba(242,100,25,0.1);
+    border: 1px solid rgba(242,100,25,0.2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+    color: var(--accent);
+  }
+  .feature-title {
+    font-size: 15px; font-weight: 700;
+    margin-bottom: 8px; color: var(--text);
+  }
+  .feature-desc {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* ── STATS BAND ── */
+  .stats-band {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px;
+    display: flex; justify-content: center;
+    position: relative; z-index: 2;
+  }
+  .stats-inner {
+    display: flex; gap: 0;
+    max-width: 900px; width: 100%;
+  }
+  .stat-item {
+    flex: 1; text-align: center;
+    padding: 0 32px;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-size: 52px; font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent), #ff8c42);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 13px; color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .steps-row {
+    display: flex; gap: 0;
+    position: relative;
+  }
+  .steps-row::before {
+    content: '';
+    position: absolute;
+    top: 28px; left: 28px; right: 28px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), var(--accent), var(--border));
+  }
+  .step {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 0 24px;
+    position: relative; z-index: 2;
+  }
+  .step-num {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    color: var(--accent);
+    margin-bottom: 20px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .step:hover .step-num {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(242,100,25,0.3);
+  }
+  .step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    padding: 120px 40px;
+    text-align: center;
+    position: relative; z-index: 2;
+    overflow: hidden;
+  }
+  .cta-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 800px 400px at 50% 50%, rgba(242,100,25,0.08), transparent);
+    pointer-events: none;
+  }
+  .cta-section h2 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900; letter-spacing: -2px;
+    max-width: 700px; margin: 0 auto 20px;
+    line-height: 1.05;
+  }
+  .cta-section p {
+    font-size: 16px; color: var(--text-secondary);
+    max-width: 440px; margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 2;
+    color: var(--text-muted); font-size: 12px;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── COUNTER ANIMATION ── */
+  .count-up { display: inline-block; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .topbar { padding: 14px 20px; }
+    .topbar-nav { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats-inner { flex-direction: column; gap: 32px; }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
+    .steps-row { flex-direction: column; gap: 32px; }
+    .steps-row::before { display: none; }
+    .preview-body { height: auto; flex-direction: column; }
+    .preview-sidebar { width: 100%; height: auto; }
+    .section { padding: 60px 20px; }
+  }
+</style>
 </head>
 <body>
-  <div class="landing-shell">
-    <header class="landing-topbar">
-      <div class="brand">
-        <div class="brand-icon">
-          <span></span><span></span><span></span><span></span>
-        </div>
-        <span class="brand-name">Tesko</span>
-      </div>
 
-      <div class="topbar-actions">
-        <a href="{% url 'login' %}" class="top-link">Login</a>
-        <a href="{% url 'signup' %}" class="top-cta">Get Started</a>
-      </div>
-    </header>
+<!-- custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
 
-    <main class="hero">
-      <section class="hero-copy">
-        <span class="eyebrow">Project workspace preview</span>
-        <h1>See your project flow before you sign in.</h1>
-        <p class="hero-text">
-          A cleaner preview of Tesko's board experience with just the essentials visible.
-          After login, the full dashboard opens with all views and controls.
-        </p>
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <a href="#" class="brand">
+    <div class="brand-icon">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <span class="brand-name">Tesko</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#tryit">Try It</a>
+  </nav>
+  <div class="topbar-actions">
+    <a href="{% url 'login' %}" class="btn-ghost">Log in</a>
+    <a href="{% url 'signup' %}" class="btn-primary">Get Started →</a>
+  </div>
+</header>
 
-        <div class="hero-actions">
-          <a href="#" class="hero-btn primary">Start Free</a>
-          <a href="#" class="hero-btn secondary">Login</a>
-        </div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 
-        <div class="mini-stats">
-          <div class="mini-stat">
-            <strong>Board</strong>
-            <span>Track active work</span>
-          </div>
-          <div class="mini-stat">
-            <strong>Team</strong>
-            <span>See who owns what</span>
-          </div>
-          <div class="mini-stat">
-            <strong>Sprint</strong>
-            <span>Follow progress fast</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="preview-panel">
-        <div class="preview-sidebar">
-          <div class="workspace-pill">
-            <div class="ws-icon">MT</div>
-            <div>
-              <strong>My Team Workspace</strong>
-              <small>Software Project</small>
-            </div>
-          </div>
-
-          <nav class="preview-nav">
-            <a class="active" href="#">Board</a>
-            <a href="#">Backlog</a>
-            <a href="#">Members</a>
-          </nav>
-
-          <div class="sprint-card">
-            <small>Active Sprint</small>
-            <h3>Sprint 1</h3>
-            <div class="progress-bar"><span></span></div>
-            <p>40% completed</p>
-          </div>
-        </div>
-
-        <div class="preview-main">
-          <div class="preview-head">
-            <div>
-              <p class="breadcrumb">Projects / My Team Workspace</p>
-              <h2>Sprint Board</h2>
-            </div>
-            <button class="preview-btn" id="toggleViewBtn">List View</button>
-          </div>
-
-          <div class="stats-row">
-            <div class="stat-card">
-              <strong>5</strong>
-              <span>Total tasks</span>
-            </div>
-            <div class="stat-card">
-              <strong>1</strong>
-              <span>In progress</span>
-            </div>
-            <div class="stat-card">
-              <strong>1</strong>
-              <span>Done</span>
-            </div>
-          </div>
-
-          <div class="board-view" id="boardView">
-            <div class="board-col">
-              <div class="col-head">
-                <span>To Do</span>
-                <small>2</small>
-              </div>
-
-              <div class="task-card">
-                <div class="task-strip feature"></div>
-                <h4>Design landing experience</h4>
-                <div class="task-meta">
-                  <span class="tag feature">Feature</span>
-                  <span>TES-001</span>
-                </div>
-              </div>
-
-              <div class="task-card">
-                <div class="task-strip design"></div>
-                <h4>Refine hero content</h4>
-                <div class="task-meta">
-                  <span class="tag design">Design</span>
-                  <span>TES-002</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="board-col">
-              <div class="col-head">
-                <span>In Progress</span>
-                <small>1</small>
-              </div>
-
-              <div class="task-card">
-                <div class="task-strip bug"></div>
-                <h4>Fix signup validation</h4>
-                <div class="task-meta">
-                  <span class="tag bug">Bug</span>
-                  <span>TES-003</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="board-col">
-              <div class="col-head">
-                <span>Done</span>
-                <small>1</small>
-              </div>
-
-              <div class="task-card done">
-                <div class="task-strip task"></div>
-                <h4>Create board layout</h4>
-                <div class="task-meta">
-                  <span class="tag task">Task</span>
-                  <span>TES-004</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="list-view hidden" id="listView">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Task</th>
-                  <th>Status</th>
-                  <th>Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>TES-001</td>
-                  <td>Design landing experience</td>
-                  <td>To Do</td>
-                  <td>Feature</td>
-                </tr>
-                <tr>
-                  <td>TES-002</td>
-                  <td>Refine hero content</td>
-                  <td>To Do</td>
-                  <td>Design</td>
-                </tr>
-                <tr>
-                  <td>TES-003</td>
-                  <td>Fix signup validation</td>
-                  <td>In Progress</td>
-                  <td>Bug</td>
-                </tr>
-                <tr>
-                  <td>TES-004</td>
-                  <td>Create board layout</td>
-                  <td>Done</td>
-                  <td>Task</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
+  <div class="hero-eyebrow">
+    <span class="eyebrow-dot"></span>
+    Now in public beta
   </div>
 
-  <script src="landing.js"></script>
+  <h1 class="hero-title">
+    Ship faster,<br><span class="accent-word">together.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Tesko is the project workspace your team actually wants to use — boards, backlogs, sprints, and code in one place.
+  </p>
+
+  <div class="hero-cta-row">
+    <a href="{% url 'signup' %}" class="cta-big">Start for free</a>
+    <a href="#features" class="cta-secondary">
+      See how it works
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+
+  <div class="hero-trust">
+    <div class="trust-avatars">
+      <div class="trust-av a1">J</div>
+      <div class="trust-av a2">M</div>
+      <div class="trust-av a3">S</div>
+      <div class="trust-av a4">R</div>
+    </div>
+    <span>Join teams already shipping with Tesko</span>
+  </div>
+
+  <!-- LIVE PREVIEW -->
+  <div class="preview-wrap">
+    <div class="preview-glow"></div>
+    <div class="preview-window">
+      <div class="preview-titlebar">
+        <div class="tb-dot red"></div>
+        <div class="tb-dot yellow"></div>
+        <div class="tb-dot green"></div>
+        <div class="tb-url">app.tesko.io/board</div>
+      </div>
+      <div class="preview-body">
+        <!-- sidebar -->
+        <div class="preview-sidebar">
+          <div class="ps-ws">
+            <div class="ps-ws-icon">MT</div>
+            <div>
+              <div class="ps-ws-name">My Team</div>
+              <div class="ps-ws-type">Software</div>
+            </div>
+          </div>
+          <div class="ps-label">Project</div>
+          <div class="ps-item active">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            Board
+          </div>
+          <div class="ps-item">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Backlog
+          </div>
+          <div class="ps-item">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="5" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="10" y="1" width="5" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            Roadmap
+          </div>
+          <div class="ps-label">Team</div>
+          <div class="ps-item">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-2.2 2.2-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Members
+          </div>
+        </div>
+
+        <!-- main board -->
+        <div class="preview-main">
+          <div class="pm-head">
+            <div>
+              <div class="pm-title">Sprint Board</div>
+              <div class="pm-date">Week 24 · 5 tasks</div>
+            </div>
+          </div>
+          <div class="pm-stats">
+            <div class="pm-stat">
+              <div class="pm-stat-val">5</div>
+              <div class="pm-stat-label">Total</div>
+            </div>
+            <div class="pm-stat">
+              <div class="pm-stat-val orange">2</div>
+              <div class="pm-stat-label">Active</div>
+            </div>
+            <div class="pm-stat">
+              <div class="pm-stat-val green">1</div>
+              <div class="pm-stat-label">Done</div>
+            </div>
+          </div>
+          <div class="pm-cols">
+            <!-- To Do -->
+            <div class="pm-col">
+              <div class="pm-col-head">
+                <div class="col-dot todo"></div>
+                <span class="pm-col-name">To Do</span>
+                <span class="pm-col-count">2</span>
+              </div>
+              <div class="pm-card">
+                <div class="pm-card-strip feature"></div>
+                <div class="pm-card-title">Setup auth with Django</div>
+                <div class="pm-card-meta">
+                  <span class="pm-tag feature">Feature</span>
+                  <span class="pm-card-id">TES-001</span>
+                  <div class="pm-av">J</div>
+                </div>
+              </div>
+              <div class="pm-card">
+                <div class="pm-card-strip design"></div>
+                <div class="pm-card-title">Design signup page</div>
+                <div class="pm-card-meta">
+                  <span class="pm-tag design">Design</span>
+                  <span class="pm-card-id">TES-002</span>
+                  <div class="pm-av" style="background:#8b5cf6">M</div>
+                </div>
+              </div>
+            </div>
+            <!-- In Progress -->
+            <div class="pm-col">
+              <div class="pm-col-head">
+                <div class="col-dot prog"></div>
+                <span class="pm-col-name">In Progress</span>
+                <span class="pm-col-count">1</span>
+              </div>
+              <div class="pm-card animating">
+                <div class="pm-card-strip bug"></div>
+                <div class="pm-card-title">Fix POST validation bug</div>
+                <div class="pm-card-meta">
+                  <span class="pm-tag bug">Bug</span>
+                  <span class="pm-card-id">TES-003</span>
+                  <div class="pm-av" style="background:#2563eb">S</div>
+                </div>
+              </div>
+            </div>
+            <!-- In Review -->
+            <div class="pm-col">
+              <div class="pm-col-head">
+                <div class="col-dot review"></div>
+                <span class="pm-col-name">In Review</span>
+                <span class="pm-col-count">1</span>
+              </div>
+              <div class="pm-card">
+                <div class="pm-card-strip task"></div>
+                <div class="pm-card-title">Update ToS checkbox</div>
+                <div class="pm-card-meta">
+                  <span class="pm-tag task">Task</span>
+                  <span class="pm-card-id">TES-004</span>
+                  <div class="pm-av" style="background:#16a34a">R</div>
+                </div>
+              </div>
+            </div>
+            <!-- Done -->
+            <div class="pm-col">
+              <div class="pm-col-head">
+                <div class="col-dot done"></div>
+                <span class="pm-col-name">Done</span>
+                <span class="pm-col-count">1</span>
+              </div>
+              <div class="pm-card">
+                <div class="pm-card-strip feature"></div>
+                <div class="pm-card-title">Create workspace models</div>
+                <div class="pm-card-meta">
+                  <span class="pm-tag feature">Feature</span>
+                  <span class="pm-card-id">TES-005</span>
+                  <div class="pm-av">J</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <div class="stat-num"><span class="count-up" data-target="12">0</span>k+</div>
+      <div class="stat-label">Tasks shipped</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-num"><span class="count-up" data-target="340">0</span>+</div>
+      <div class="stat-label">Active teams</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-num"><span class="count-up" data-target="98">0</span>%</div>
+      <div class="stat-label">Uptime</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-num"><span class="count-up" data-target="4">0</span>x</div>
+      <div class="stat-label">Faster delivery</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-eyebrow reveal">Everything you need</div>
+  <h2 class="section-title reveal">Built for teams that actually ship.</h2>
+  <p class="section-sub reveal">No bloat. No unnecessary complexity. Just the tools your team needs to move fast and stay aligned.</p>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="7" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="1" width="7" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="14" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="feature-title">Kanban Board</div>
+      <div class="feature-desc">Drag and drop tasks across columns in real time. Todo, In Progress, In Review, Done — always in sync.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 5h16M2 10h10M2 15h13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feature-title">Backlog Management</div>
+      <div class="feature-desc">Park ideas in the backlog, prioritize them, then move them to the board when you're ready to execute.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="6" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="1" width="6" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="11" width="6" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="15" width="6" height="4" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="feature-title">Roadmap View</div>
+      <div class="feature-desc">See the big picture. Plan across sprints and track progress toward your product milestones.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 18c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feature-title">Team Workspaces</div>
+      <div class="feature-desc">Invite teammates via code, assign tasks, and see who owns what — all within your workspace.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feature-title">Time Tracking</div>
+      <div class="feature-desc">Log time on tasks, see estimates vs actuals, and understand where your team's hours are going.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 2v16M5 2l4 4M5 2L1 6M15 18V2M15 18l-4-4M15 18l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="feature-title">Code Integration</div>
+      <div class="feature-desc">Connect your GitHub repo, track commits, and link code changes directly to tasks.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how" style="padding-top:0">
+  <div class="section-eyebrow reveal">How it works</div>
+  <h2 class="section-title reveal">Up and running in minutes.</h2>
+  <p class="section-sub reveal">No onboarding calls. No setup fees. Just create, invite, and ship.</p>
+
+  <div class="steps-row">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <div class="step-title">Create a workspace</div>
+      <div class="step-desc">Pick a name, choose your team type, and your workspace is live instantly.</div>
+    </div>
+    <div class="step reveal reveal-delay-1">
+      <div class="step-num">2</div>
+      <div class="step-title">Invite your team</div>
+      <div class="step-desc">Share your unique invite code. Teammates join in one click — no email chains.</div>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <div class="step-num">3</div>
+      <div class="step-title">Add tasks to backlog</div>
+      <div class="step-desc">Dump everything in the backlog. Prioritize, assign, and estimate as you go.</div>
+    </div>
+    <div class="step reveal reveal-delay-3">
+      <div class="step-num">4</div>
+      <div class="step-title">Ship your sprint</div>
+      <div class="step-desc">Move tasks to the board, drag them across columns, and watch progress happen live.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="tryit">
+  <div class="cta-bg"></div>
+  <h2 class="reveal">Ready to move<br><span class="accent-word">faster?</span></h2>
+  <p class="reveal">Your team deserves a tool that works as hard as they do. Start free — no credit card required.</p>
+  <div class="hero-cta-row" style="justify-content:center">
+    <a href="{% url 'signup' %}" class="cta-big reveal">Create your workspace →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="brand">
+    <div class="brand-icon">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <span class="brand-name" style="font-size:14px">Tesko</span>
+  </div>
+  <div>© 2026 Tesko. Built for teams that ship.</div>
+</footer>
+
+<script>
+  // ── CURSOR ──
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+  });
+
+  function animateRing() {
+    rx += (mx - rx - 18) * 0.12;
+    ry += (my - ry - 18) * 0.12;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, .pm-card, .feature-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform += ' scale(1.5)';
+      ring.style.width = '50px';
+      ring.style.height = '50px';
+      ring.style.borderColor = 'rgba(242,100,25,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(242,100,25,0.5)';
+    });
+  });
+
+  // ── TOPBAR SCROLL ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('topbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // ── SCROLL REVEAL ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // ── COUNT UP ──
+  const counters = document.querySelectorAll('.count-up');
+  const countObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const target = parseInt(el.dataset.target);
+      const duration = 1500;
+      const start = performance.now();
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(ease * target);
+        if (progress < 1) requestAnimationFrame(update);
+        else el.textContent = target;
+      }
+      requestAnimationFrame(update);
+      countObserver.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(el => countObserver.observe(el));
+
+  // ── THEME (keep existing) ──
+  function toggleTheme() {
+    document.body.classList.toggle('light-theme');
+    localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+  }
+  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
+</script>
 </body>
 </html>
