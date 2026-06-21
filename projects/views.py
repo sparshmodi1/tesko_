@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from .forms import EditTaskForm
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from .models import createTask, TaskComment
@@ -20,6 +21,64 @@ from .models import GitHubRepositoryConnection, Workspace, createTask
 
 
 GITHUB_REPO_RE = re.compile(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')
+
+
+def is_workspace_creator(user, workspace):
+    return workspace and user.is_authenticated and (
+        workspace.creator_id == user.id or is_superior_user(user)
+    )
+
+
+def is_superior_user(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def can_manage_workspace(user, workspace):
+    return (
+        workspace
+        and user.is_authenticated
+        and (
+            is_superior_user(user)
+        )
+    )
+
+
+def sync_superior_workspace_memberships():
+    superior_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True), is_active=True)
+    if not superior_users.exists():
+        return
+
+    for workspace in Workspace.objects.all():
+        workspace.members.add(*superior_users)
+
+
+def workspaces_for_user(user):
+    if is_superior_user(user):
+        sync_superior_workspace_memberships()
+        return Workspace.objects.all().distinct()
+    return Workspace.objects.filter(
+        Q(members=user) | Q(creator=user)
+    ).distinct()
+
+
+def workspace_for_request(request):
+    workspace_id = request.session.get('workspace_id')
+    workspaces = workspaces_for_user(request.user)
+    workspace = None
+
+    if workspace_id:
+        workspace = workspaces.filter(id=workspace_id).first()
+        if not workspace:
+            request.session.pop('workspace_id', None)
+
+    if not workspace:
+        workspace = Workspace.objects.filter(creator=request.user).first()
+    if not workspace:
+        workspace = workspaces.first()
+    if workspace:
+        request.session['workspace_id'] = workspace.id
+
+    return workspace
 
 
 class GitHubAPIError(Exception):
@@ -143,63 +202,60 @@ def landing_view(request):
 
 @login_required
 def backlog_view(request):
-
-    workspace = None
-
-    workspace_id = request.session.get('workspace_id')
-
-    if workspace_id:
-        workspace = Workspace.objects.filter(
-            id=workspace_id,
-            members=request.user
-        ).first()
-
-    if not workspace:
-        workspace = Workspace.objects.filter(
-            members=request.user
-        ).first()
-
-        if workspace:
-            request.session['workspace_id'] = workspace.id
+    workspace = workspace_for_request(request)
 
     if not workspace:
         return redirect('onboard')
 
-    form = BacklogTaskForm(request.POST or None)
+    form = BacklogTaskForm(request.POST or None, workspace=workspace)
+
+    if request.method == "POST":
+        if not can_manage_workspace(request.user, workspace):
+            messages.error(request, "Only the workspace admin or lead can create backlog issues.")
+            return redirect('backlog')
+    
+    print("POST DATA:", request.POST)
+    print("FORM VALID:", form.is_valid())
+    print("FORM ERRORS:", form.errors)
+    
 
     if request.method == "POST" and form.is_valid():
         task = form.save(commit=False)
-        # attach task to current workspace
         task.workspace = workspace
         task.in_backlog = True
+        task.reporter = request.user
         task.save()
 
         return redirect('backlog')
 
     users = workspace.members.all()
+    edit_form = EditTaskForm()
 
     tasks = createTask.objects.filter(
         workspace=workspace,
         in_backlog=True
     ).select_related('assignee').order_by('id')
 
-    Workspaces = Workspace.objects.filter(
-        members=request.user
-    ).distinct()
+    Workspaces = workspaces_for_user(request.user)
 
     return render(request, 'backlog.html', {
         'form': form,
+        'edit_form': edit_form,
         'workspace': workspace,
         'Workspaces': Workspaces,
         'users': users,
         'backlog_tasks': tasks,
         'backlog_count': tasks.count(),
+        'can_manage_workspace': can_manage_workspace(request.user, workspace),
     })
     
 @login_required
 def edit_task(request, task_id):
-    task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+    task = get_object_or_404(createTask, id=task_id, workspace__in=workspaces_for_user(request.user))
     if request.method == 'POST':
+        if not can_manage_workspace(request.user, task.workspace):
+            messages.error(request, "Only the workspace admin or lead can edit tasks.")
+            return redirect('backlog')
         task.title       = request.POST.get('title', task.title)
         task.type        = request.POST.get('type', task.type)
         task.priority    = request.POST.get('priority', task.priority)
@@ -220,7 +276,9 @@ def update_task_status(request, task_id):
         valid = ['todo', 'in_progress', 'in_review', 'done']
         if new_status not in valid:
             return JsonResponse({'error': 'Invalid status'}, status=400)
-        task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+        task = get_object_or_404(createTask, id=task_id, workspace__in=workspaces_for_user(request.user))
+        if not can_manage_workspace(request.user, task.workspace):
+            return JsonResponse({'error': 'Only the workspace admin or lead can update task status.'}, status=403)
         task.status = new_status
         task.save()
         return JsonResponse({'success': True})
@@ -238,11 +296,11 @@ def project_settings(request):
 
 @login_required
 def members(request):
-    workspace_id = request.session.get('workspace_id')
-    if not workspace_id:
+    workspace = workspace_for_request(request)
+
+    if not workspace:
         return redirect('onboard')
 
-    workspace = get_object_or_404(Workspace, id=workspace_id, members=request.user)
     users = workspace.members.all()
 
     for user in users:
@@ -254,6 +312,8 @@ def members(request):
     return render(request, 'members.html', {
         'workspace': workspace,
         'users': users,
+        'can_manage_workspace': can_manage_workspace(request.user, workspace),
+        'can_set_lead': is_workspace_creator(request.user, workspace),
     })
 
 @login_required
@@ -266,21 +326,7 @@ def profile(request):
 
 @login_required
 def board_view(request):
-    workspace_id = request.session.get('workspace_id')
-    workspace = None
-
-    if workspace_id:
-        workspace = Workspace.objects.filter(
-            id=workspace_id,
-            members=request.user
-        ).first()
-
-    if not workspace:
-        workspace = Workspace.objects.filter(creator=request.user).first()
-    if not workspace:
-        workspace = Workspace.objects.filter(members=request.user).first()
-    if workspace:
-        request.session['workspace_id'] = workspace.id
+    workspace = workspace_for_request(request)
 
     if not workspace:
         return redirect('onboard')
@@ -291,23 +337,26 @@ def board_view(request):
     )
 
     if request.method == "POST" and request.POST.get('form_type') == 'create_task' and create_form.is_valid():
+        if not can_manage_workspace(request.user, workspace):
+            messages.error(request, "Only the workspace admin or lead can create tasks.")
+            return redirect('home')
         task = create_form.save(commit=False)
         task.workspace = workspace  
         task.in_backlog = False
+        task.reporter = request.user
         task.save()
         return redirect('home')
-
+    
     users = workspace.members.all()
     tasks = createTask.objects.filter(workspace=workspace,in_backlog=False)
-    Workspaces = Workspace.objects.filter(members=request.user).distinct()
-    Workspaces_creator = Workspace.objects.filter(creator = request.user).distinct()
+    Workspaces = workspaces_for_user(request.user)
+    due_date = createTask.objects.filter(due_date__isnull=False)
 
     return render(request, 'home.html', {
         'workspace': workspace,
         'Workspaces': Workspaces,
-        'workspaces_creator': Workspaces_creator,
         'create_form': create_form,
-        'edit_form': EditTaskForm(),
+        'edit_form': EditTaskForm(workspace=workspace),
         'users': users,
         'todo_tasks': tasks.filter(status='todo'),
         'in_progress_tasks': tasks.filter(status='in_progress'),
@@ -318,20 +367,81 @@ def board_view(request):
         'in_progress_count': tasks.filter(status='in_progress').count(),
         'done_count': tasks.filter(status='done').count(),
         'in_review_count': tasks.filter(status='in_review').count(),
+        'due_date':due_date,
+        'can_manage_workspace': can_manage_workspace(request.user, workspace),
+        'can_set_lead': is_workspace_creator(request.user, workspace),
+        'can_manage_workspace': can_manage_workspace(request.user, workspace),
     })
 
 @login_required
+@require_POST
+def update_task_field(request, task_id):
+    task = get_object_or_404(createTask, id=task_id, workspace__in=workspaces_for_user(request.user))
+    if not can_manage_workspace(request.user, task.workspace):
+        return JsonResponse({'error': 'Permission denied.'}, status=403)
+
+    data = json.loads(request.body)
+    field = data.get('field')
+    value = data.get('value')
+
+    allowed_fields = ['status', 'priority', 'assignee', 'due_date', 'start_date', 'sprint', 'estimate']
+    if field not in allowed_fields:
+        return JsonResponse({'error': 'Invalid field.'}, status=400)
+
+    if field == 'assignee':
+        if value:
+            task.assignee_id = value
+        else:
+            task.assignee = None
+    elif field in ('due_date', 'start_date'):
+        task.__dict__[field] = value if value else None
+    elif field == 'estimate':
+        task.estimate = value if value else None
+    else:
+        task.__dict__[field] = value
+
+    task.save()
+    return JsonResponse({'success': True})
+
+@login_required
+@require_POST
+def set_workspace_lead(request):
+    workspace_id = request.session.get('workspace_id')
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    if not is_workspace_creator(request.user, workspace):
+        messages.error(request, "Only the workspace creator can set the lead.")
+        return redirect('members')
+    
+    lead_id = request.POST.get('lead_id')
+    if lead_id:
+        lead_user = get_object_or_404(User, id=lead_id)
+        if lead_user == workspace.creator or is_superior_user(lead_user):
+            messages.error(request, "That user already has admin access. Choose another member as lead.")
+        elif lead_user in workspace.members.all():
+            workspace.lead = lead_user
+            workspace.save()
+            messages.success(request, f"{lead_user.username} is now the workspace lead.")
+        else:
+            messages.error(request, "Selected user is not a member of this workspace.")
+    else:
+        workspace.lead = None
+        workspace.save()
+        messages.success(request, "Workspace lead cleared.")
+    return redirect('members')
+
+@login_required
 def switch_workspace(request, workspace_id):
-    workspace = Workspace.objects.filter(
-        Q(id=workspace_id) & (Q(members=request.user) | Q(creator=request.user))
-    ).first()
+    workspace = workspaces_for_user(request.user).filter(id=workspace_id).first()
     if workspace:
         request.session['workspace_id'] = workspace.id
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 @login_required
 def move_to_board(request, task_id):
-    task = get_object_or_404(createTask, id=task_id, workspace__members=request.user)
+    task = get_object_or_404(createTask, id=task_id, workspace__in=workspaces_for_user(request.user))
+    if not can_manage_workspace(request.user, task.workspace):
+        messages.error(request, "Only the workspace admin or lead can move tasks.")
+        return redirect('backlog')
     task.in_backlog = False
     task.save()
     return redirect('backlog')
@@ -341,7 +451,10 @@ def saveView(request, task_id):
     task = get_object_or_404(createTask, id=task_id)
 
     if request.method == "POST":
-        form = EditTaskForm(request.POST, instance=task)
+        if not can_manage_workspace(request.user, task.workspace):
+            messages.error(request, "Only the workspace admin or lead can edit tasks.")
+            return redirect('home')
+        form = EditTaskForm(request.POST, instance=task, workspace=task.workspace)
         if form.is_valid():
             form.save()
 
@@ -351,7 +464,6 @@ def saveView(request, task_id):
 def onboard(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
-        
         if form_type == 'create_workspace':
             form = CreateWorkspaceForm(request.POST)
             if form.is_valid():
@@ -359,6 +471,7 @@ def onboard(request):
                 workspace.creator = request.user
                 workspace.save()
                 workspace.members.add(request.user)
+                sync_superior_workspace_memberships()
                 request.session['workspace_id'] = workspace.id
                 return redirect('home')
         
@@ -496,8 +609,39 @@ def github_contents_api(request):
 @require_POST
 def delete_task(request, task_id):
     task = get_object_or_404(createTask, id=task_id)
+    if not can_manage_workspace(request.user, task.workspace):
+        return JsonResponse({'error': 'Only the workspace admin or lead can delete tasks.'}, status=403)
     task.delete()
     return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_POST
+def remove_workspace_member(request, workspace_id, user_id):
+    workspace = get_object_or_404(workspaces_for_user(request.user), id=workspace_id)
+    if not can_manage_workspace(request.user, workspace):
+        messages.error(request, "Only the workspace admin or lead can manage members.")
+        return redirect('members')
+
+    member = get_object_or_404(User, id=user_id)
+    if member == request.user:
+        messages.error(request, "Use Leave Workspace to remove yourself.")
+        return redirect('members')
+
+    if member == workspace.creator or is_superior_user(member):
+        messages.error(request, "Workspace admins cannot be removed.")
+        return redirect('members')
+
+    if member not in workspace.members.all():
+        messages.error(request, "That user is not a member of this workspace.")
+        return redirect('members')
+
+    workspace.members.remove(member)
+    if workspace.lead_id == member.id:
+        workspace.lead = None
+        workspace.save(update_fields=['lead'])
+    messages.success(request, f"{member.username} was removed from the workspace.")
+    return redirect('members')
 
 
 @login_required
@@ -509,6 +653,7 @@ def create_workspace(request):
             workspace.creator = request.user
             workspace.save()
             workspace.members.add(request.user)
+            sync_superior_workspace_memberships()
             request.session['workspace_id'] = workspace.id
             return redirect('home')
     else:
@@ -520,9 +665,12 @@ def create_workspace(request):
 def leave_workspace(request, workspace_id):
     workspace = get_object_or_404(Workspace, id=workspace_id)
     if request.method == 'POST':
+        if is_superior_user(request.user):
+            messages.error(request, "Superior admins stay members of every workspace.")
+            return redirect('home')
         workspace.members.remove(request.user)
 
-        next_workspace = Workspace.objects.filter(members=request.user).exclude(id=workspace_id).first()
+        next_workspace = workspaces_for_user(request.user).exclude(id=workspace_id).first()
         
         if next_workspace:
             return redirect('switch_workspace', workspace_id=next_workspace.id)
@@ -532,40 +680,46 @@ def leave_workspace(request, workspace_id):
     return redirect('home', workspace_id=workspace.id)
         
 
+
+
+import json
+
 @login_required
-def comments_view(request):
-    workspace_id = request.session.get('workspace_id')
-    workspace = get_object_or_404(Workspace, id=workspace_id, members=request.user)
-
-    tasks = createTask.objects.filter(workspace=workspace)
-    today = timezone.now().date()
-
-    selected_task = None
-    task_id = request.GET.get('task_id')
-    if task_id:
-        selected_task = get_object_or_404(createTask, id=task_id, workspace=workspace)
-
-    overdue_tasks = tasks.filter(due_date__lt=today).exclude(status='done')
-    due_today_tasks = tasks.filter(due_date=today)
-    upcoming_tasks = tasks.filter(due_date__gt=today).order_by('due_date')[:5]
-
-    return render(request, 'comments.html', {
-        'workspace': workspace,
-        'tasks': tasks,
-        'selected_task': selected_task,
-        'overdue_tasks': overdue_tasks,
-        'due_today_tasks': due_today_tasks,
-        'upcoming_tasks': upcoming_tasks,
-    })
-
+def get_comments(request, task_id):
+    task = get_object_or_404(createTask, id=task_id)
+    comments = task.comments.all().order_by('created_at')
+    data = []
+    for c in comments:
+        data.append({
+            'id': c.id,
+            'text': c.text,
+            'author': c.user.get_full_name() or c.user.username,
+            'author_initial': (c.user.username[0] if c.user.username else 'U').upper(),
+            'time': c.created_at.strftime("%H:%M")
+        })
+    return JsonResponse({'comments': data})
 
 @login_required
 def add_comment(request, task_id):
     task = get_object_or_404(createTask, id=task_id)
     if request.method == 'POST':
-        text = request.POST.get('text', '').strip()
-        if text:
-            TaskComment.objects.create(task=task, user=request.user, text=text)
+        if request.content_type == 'application/json':
+            import json
+            data = json.loads(request.body)
+            text = data.get('text', '').strip()
+            if text:
+                c = TaskComment.objects.create(task=task, user=request.user, text=text)
+                return JsonResponse({
+                    'id': c.id,
+                    'text': c.text,
+                    'author': c.user.get_full_name() or c.user.username,
+                    'author_initial': (c.user.username[0] if c.user.username else 'U').upper(),
+                    'time': c.created_at.strftime("%H:%M")
+                })
+        else:
+            text = request.POST.get('text', '').strip()
+            if text:
+                TaskComment.objects.create(task=task, user=request.user, text=text)
     return redirect(f"{request.META.get('HTTP_REFERER', '/')}#comments")
 
 
@@ -601,9 +755,9 @@ def delete_workspace(request, workspace_id):
     workspace = get_object_or_404(Workspace, id=workspace_id)
     
     if request.method == 'POST':
-        if request.user == workspace.creator:
+        if is_workspace_creator(request.user, workspace):
             workspace.delete()
-            next_workspace = Workspace.objects.filter(members=request.user).first()
+            next_workspace = workspaces_for_user(request.user).first()
             if next_workspace:
                 return redirect('switch_workspace', workspace_id=next_workspace.id)
             else:

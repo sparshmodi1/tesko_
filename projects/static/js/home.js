@@ -26,7 +26,6 @@ function drop(e, colId) {
   e.preventDefault();
   if (!draggedCard) return;
 
-  // map status value → actual DOM id
   const idMap = {
     'todo':        'todo',
     'in_progress': 'inprogress',
@@ -36,16 +35,23 @@ function drop(e, colId) {
 
   const domId = idMap[colId];
   const target = document.getElementById('cards-' + domId);
-  if (!target) return;  // safety check
+  if (!target) return;
 
+  // animate card drop-in
+  draggedCard.style.animation = 'none';
   target.appendChild(draggedCard);
   draggedCard.dataset.col = colId;
   draggedCard.classList.remove('dragging');
-  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+  requestAnimationFrame(() => {
+    draggedCard.style.animation = '';
+    draggedCard.style.animationName = 'cardDropIn';
+    draggedCard.style.animationDuration = '.25s';
+    draggedCard.style.animationTimingFunction = 'cubic-bezier(.4,0,.2,1)';
+  });
 
+  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
   updateCounts();
 
-  // save to backend
   const rawId = draggedCard.dataset.id.replace('TES-', '').replace(/^0+/, '');
   fetch(`/task/${rawId}/update-status/`, {
     method: 'POST',
@@ -86,11 +92,9 @@ function updateCounts() {
     const count = cards.length;
     total += count;
 
-    // column header badge
     const badge = document.getElementById('count-' + domId);
-    if (badge) badge.textContent = count;
+    if (badge) animateCount(badge, parseInt(badge.textContent) || 0, count);
 
-    // stats row
     const statMap = {
       'todo':        '.count-todo',
       'in_progress': '.count-progress',
@@ -98,19 +102,31 @@ function updateCounts() {
       'done':        '.count-done',
     };
     const statEl = document.querySelector(statMap[statKey]);
-    if (statEl) statEl.textContent = count;
+    if (statEl) animateCount(statEl, parseInt(statEl.textContent) || 0, count);
   });
 
   const totalEl = document.querySelector('.count-total');
-  if (totalEl) totalEl.textContent = total;
+  if (totalEl) animateCount(totalEl, parseInt(totalEl.textContent) || 0, total);
 }
+
+/* smoothly counts up/down a number */
+function animateCount(el, from, to) {
+  if (from === to) return;
+  const dur = 300;
+  const start = performance.now();
+  requestAnimationFrame(function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    el.textContent = Math.round(from + (to - from) * easeOut(p));
+    if (p < 1) requestAnimationFrame(tick);
+  });
+}
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
 
 /* ── WORKSPACE DROPDOWN ──────────────── */
 const pill     = document.getElementById('wsPill');
 const dropdown = document.getElementById('wsDropdown');
 
-// Teleport dropdown to <body> on first use so it's never clipped by sidebar
 let teleported = false;
 function ensureTeleported() {
   if (teleported) return;
@@ -133,7 +149,6 @@ pill.addEventListener('click', (e) => {
   pill.classList.toggle('open', !isOpen);
 });
 
-// Close on outside click
 document.addEventListener('click', (e) => {
   if (!dropdown.contains(e.target) && !pill.contains(e.target)) {
     dropdown.classList.remove('visible');
@@ -141,10 +156,23 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Prevent dropdown from closing itself
 dropdown.addEventListener('click', (e) => e.stopPropagation());
 
-// Re-position on scroll/resize so it never drifts
+const wsSearch = document.getElementById('wsSearch');
+const wsList   = document.getElementById('wsList');
+if (wsSearch && wsList) {
+  wsSearch.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const items = wsList.querySelectorAll('.dd-item[data-name]');
+    items.forEach(item => {
+      const name  = item.dataset.name || '';
+      const code  = item.dataset.code || '';
+      const match = !query || name.includes(query) || code.includes(query);
+      item.classList.toggle('hidden', !match);
+    });
+  });
+}
+
 window.addEventListener('resize', () => {
   if (dropdown.classList.contains('visible')) positionDropdown();
 });
@@ -158,7 +186,14 @@ function filterCards(query) {
   const q = query.toLowerCase();
   document.querySelectorAll('.kanban-card').forEach(card => {
     const title = card.querySelector('.card-title').textContent.toLowerCase();
-    card.style.display = title.includes(q) ? '' : 'none';
+    const show  = title.includes(q);
+    if (show) {
+      card.style.display = '';
+      card.style.opacity = '1';
+    } else {
+      card.style.opacity = '0';
+      setTimeout(() => { card.style.display = 'none'; }, 150);
+    }
   });
 }
 
@@ -171,11 +206,16 @@ function filterByAssignee(userId) {
 
   allTasks.forEach(task => {
     const match = userId === 'all' || task.dataset.assigneeId === String(userId);
-    task.style.display = match ? 'block' : 'none';
     if (match) {
+      task.style.display = 'block';
+      task.style.opacity = '1';
       counts.total++;
       const col = task.dataset.col;
       if (counts[col] !== undefined) counts[col]++;
+    } else {
+      task.style.opacity = '0.3';
+      task.style.pointerEvents = 'none';
+      task.style.display = 'block';
     }
   });
 
@@ -194,10 +234,24 @@ function filterByAssignee(userId) {
 
 /* ── VIEW TOGGLE ─────────────────────── */
 function switchView(view) {
-  document.getElementById('boardView').classList.toggle('hidden', view !== 'board');
-  document.getElementById('listView').classList.toggle('hidden',  view !== 'list');
-  document.getElementById('btnBoard').classList.toggle('active',  view === 'board');
-  document.getElementById('btnList').classList.toggle('active',   view === 'list');
+  const board = document.getElementById('boardView');
+  const list  = document.getElementById('listView');
+  if (board) {
+    board.style.opacity = '0';
+    setTimeout(() => {
+      board.classList.toggle('hidden', view !== 'board');
+      if (view === 'board') { board.style.opacity = '1'; }
+    }, view === 'board' ? 0 : 150);
+  }
+  if (list) {
+    list.style.opacity = '0';
+    setTimeout(() => {
+      list.classList.toggle('hidden', view !== 'list');
+      if (view === 'list') { list.style.opacity = '1'; }
+    }, view === 'list' ? 0 : 150);
+  }
+  document.getElementById('btnBoard')?.classList.toggle('active', view === 'board');
+  document.getElementById('btnList')?.classList.toggle('active',  view === 'list');
 }
 
 
@@ -206,6 +260,13 @@ function toggleTheme() {
   const body = document.body;
   const btn  = document.getElementById('themeBtn');
   body.classList.toggle('light-theme');
+
+  // quick flash overlay for smooth transition feel
+  const flash = document.createElement('div');
+  flash.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:none;background:rgba(255,255,255,.06);animation:themeFlash .3s ease forwards';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 350);
+
   if (body.classList.contains('light-theme')) {
     btn.textContent = '⏾';
     localStorage.setItem('theme', 'light');
@@ -220,10 +281,35 @@ window.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('themeBtn');
   if (savedTheme === 'light') {
     document.body.classList.add('light-theme');
-    btn.textContent = '⏾';
+    if (btn) btn.textContent = '⏾';
   } else {
-    btn.textContent = '☀';
+    if (btn) btn.textContent = '☀';
   }
+
+  // inject cardDropIn + themeFlash keyframes
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes cardDropIn {
+      from { opacity:.5; transform: scale(.97) translateY(-6px); }
+      to   { opacity:1;  transform: scale(1)   translateY(0); }
+    }
+    @keyframes themeFlash {
+      from { opacity:1; }
+      to   { opacity:0; }
+    }
+    .kanban-card { transition: opacity .15s ease, border-color .18s, transform .18s, box-shadow .18s; }
+  `;
+  document.head.appendChild(style);
+
+  const createForm = document.getElementById('createTaskForm');
+  if (createForm) {
+    createForm.addEventListener('submit', function() { /* let it submit normally */ });
+  }
+
+  // stagger-in existing cards on page load
+  document.querySelectorAll('.kanban-card').forEach((card, i) => {
+    card.style.animationDelay = (0.28 + i * 0.05) + 's';
+  });
 });
 
 
@@ -250,14 +336,18 @@ function deleteTask() {
     if (res.ok) {
       const card = document.querySelector(`[data-id="TES-${String(taskId).padStart(3,'0')}"]`);
       const col  = card?.dataset.col;
-      card?.remove();
+      if (card) {
+        card.style.transition = 'opacity .2s ease, transform .2s ease';
+        card.style.opacity    = '0';
+        card.style.transform  = 'scale(.95)';
+        setTimeout(() => card.remove(), 220);
+      }
       closeCardModal();
 
       if (col) {
         const colCount = document.getElementById(`count-${col}`);
         if (colCount) colCount.textContent = parseInt(colCount.textContent) - 1;
       }
-
       const total = document.querySelector('.count-total');
       if (total) total.textContent = parseInt(total.textContent) - 1;
 
@@ -279,33 +369,181 @@ function deleteTask() {
 /* ── OPEN / CLOSE CARD MODAL ─────────── */
 function openCard(el) {
   currentCardEl = el;
-  const form = document.getElementById('cardEditForm');
+  const form   = document.getElementById('cardEditForm');
+  const taskId = el.dataset.id.replace('TES-', '').replace(/^0+/, '');
 
-  document.getElementById('modalTaskId').value   = el.dataset.id.replace('TES-', '');
+  document.getElementById('modalTaskId').value   = taskId;
   document.getElementById('modalId').textContent = el.dataset.id;
-  document.getElementById('modalTitle').textContent =
-    el.querySelector('.card-title').textContent;
   document.getElementById('modalTag').textContent =
     el.querySelector('.tag').textContent;
 
   if (form && el.dataset.saveUrl) form.action = el.dataset.saveUrl;
 
-  const statusField      = document.getElementById('id_status');
-  const typeField        = document.getElementById('id_type');
-  const assigneeField    = document.getElementById('id_assignee');
-  const descriptionField = document.getElementById('id_description');
+  const titleField       = document.getElementById('modalTitleInput');
+  const typeField        = document.getElementById('modalType');
+  const descriptionField = document.getElementById('modalDesc');
 
-  if (statusField)      statusField.value      = el.dataset.col         || 'todo';
+  if (titleField)       titleField.value       = el.querySelector('.card-title').textContent.trim();
   if (typeField)        typeField.value        = el.dataset.type        || 'task';
-  if (assigneeField)    assigneeField.value    = el.dataset.assigneeId  || '';
   if (descriptionField) descriptionField.value = el.dataset.description || '';
 
-  initStatusCard(el.dataset.col || 'todo');
   document.getElementById('cardModal').classList.remove('hidden');
+
+  const statusField    = document.getElementById('detailStatus');
+  const priorityField  = document.getElementById('detailPriority');
+  const assigneeField  = document.getElementById('detailAssignee');
+  const dueDateField   = document.getElementById('detailDueDate');
+  const startDateField = document.getElementById('detailStartDate');
+  const sprintField    = document.getElementById('detailSprint');
+  const estimateField  = document.getElementById('detailEstimate');
+
+  if (statusField)    statusField.value    = el.dataset.col      || 'todo';
+  if (priorityField)  priorityField.value  = el.dataset.priority || 'medium';
+  if (dueDateField)   dueDateField.value   = el.dataset.dueDate    || '';
+  if (startDateField) startDateField.value = el.dataset.startDate  || '';
+  if (sprintField)    sprintField.value    = el.dataset.sprint      || '';
+  if (estimateField)  estimateField.value  = el.dataset.estimate   || '';
+
+  const statusLabels   = { 'todo': 'To Do', 'in_progress': 'In Progress', 'in_review': 'In Review', 'done': 'Done' };
+  const sprintLabels   = { 'sprint_1': 'Sprint 1', 'sprint_2': 'Sprint 2', 'sprint_3': 'Sprint 3' };
+  const priorityLabels = { 'low': 'Low', 'medium': 'Medium', 'high': 'High' };
+
+  const statusText    = document.getElementById('detailStatusText');
+  const priorityText  = document.getElementById('detailPriorityText');
+  const dueDateText   = document.getElementById('detailDueDateText');
+  const startDateText = document.getElementById('detailStartDateText');
+  const sprintText    = document.getElementById('detailSprintText');
+  const estimateText  = document.getElementById('detailEstimateText');
+  const assigneeText  = document.getElementById('detailAssigneeText');
+  const reporterText  = document.getElementById('detailReporterText');
+  const reporterAvatar= document.getElementById('detailReporterAvatar');
+
+  if (statusText)    statusText.textContent    = statusLabels[el.dataset.col]        || el.dataset.col        || '—';
+  if (priorityText)  priorityText.textContent  = priorityLabels[el.dataset.priority] || el.dataset.priority   || '—';
+  if (dueDateText)   dueDateText.textContent   = el.dataset.dueDate    || '—';
+  if (startDateText) startDateText.textContent = el.dataset.startDate  || '—';
+  if (sprintText)    sprintText.textContent    = sprintLabels[el.dataset.sprint] || el.dataset.sprint || '—';
+  if (estimateText)  estimateText.textContent  = el.dataset.estimate   || '—';
+  if (assigneeText)  assigneeText.textContent  = el.dataset.assigneeName;
+  if (reporterText)  reporterText.textContent  = el.dataset.reporterName || '—';
+  if (reporterAvatar) reporterAvatar.textContent = el.dataset.reporterName
+    ? el.dataset.reporterName.charAt(0).toUpperCase() : '—';
+
+  if (assigneeField) {
+    setTimeout(() => {
+      assigneeField.value = el.dataset.assigneeId || '';
+      const at = document.getElementById('detailAssigneeText');
+      if (at) at.textContent = el.dataset.assigneeName || '—';
+    }, 0);
+  }
+
+  initDetailFieldListeners(taskId);
+  loadEditComments(taskId);
+}
+
+function initDetailFieldListeners(taskId) {
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.querySelectorAll('.detail-inline-select, .detail-inline-date, .detail-inline-input')
+    .forEach(el => {
+      const old = el._detailChangeHandler;
+      if (old) el.removeEventListener('change', old);
+
+      const handler = async () => {
+        const field = el.dataset.field;
+        const value = el.value;
+        try {
+          const res = await fetch(`/task/${taskId}/update-field/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ field, value }),
+          });
+          const data = await res.json();
+          if (!data.success) console.error('Save failed:', data.error);
+          else {
+            // flash the field green briefly
+            el.style.transition = 'background .15s';
+            el.style.background = 'rgba(16,185,129,.12)';
+            setTimeout(() => { el.style.background = ''; }, 600);
+          }
+        } catch (e) {
+          console.error('Network error:', e);
+        }
+      };
+
+      el._detailChangeHandler = handler;
+      el.addEventListener('change', handler);
+    });
+}
+
+function loadEditComments(taskId) {
+  const list = document.getElementById('editCommentList');
+  if (!list) return;
+
+  fetch(`/task/${taskId}/comments/`)
+    .then(res => res.json())
+    .then(data => {
+      list.innerHTML = '';
+      if (data.comments && data.comments.length > 0) {
+        data.comments.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'em-comment-item';
+          item.style.cssText = 'display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);animation:cmFadeIn .2s ease';
+          item.innerHTML = `
+            <div class="em-comment-avatar">${c.author_initial}</div>
+            <div class="em-comment-body" style="flex:1;min-width:0">
+              <div class="em-comment-header">
+                <span class="em-comment-name">${c.author}</span>
+                <span class="em-comment-time">${c.time}</span>
+              </div>
+              <p class="em-comment-text">${escapeHTML(c.text)}</p>
+            </div>`;
+          list.appendChild(item);
+        });
+      } else {
+        list.innerHTML = `
+          <div class="em-comment-empty">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 3h16a1 1 0 011 1v10a1 1 0 01-1 1H6l-4 4V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            <span>No comments yet. Start the conversation.</span>
+          </div>`;
+      }
+      list.scrollTop = list.scrollHeight;
+    })
+    .catch(err => console.error('Error loading comments:', err));
+}
+
+function addEditComment() {
+  const taskId = document.getElementById('modalTaskId').value;
+  const inp    = document.getElementById('editCommentInput');
+  const text   = inp.value.trim();
+  if (!text || !taskId) return;
+
+  fetch(`/task/${taskId}/comment/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({ text })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.id) { inp.value = ''; loadEditComments(taskId); }
+  })
+  .catch(err => console.error('Error adding comment:', err));
 }
 
 function closeCardModal() {
-  document.getElementById('cardModal').classList.add('hidden');
+  const modal = document.getElementById('cardModal');
+  modal.style.opacity   = '0';
+  modal.style.transform = 'scale(.98)';
+  modal.style.transition= 'opacity .18s ease, transform .18s ease';
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.style.opacity   = '';
+    modal.style.transform = '';
+    modal.style.transition= '';
+  }, 190);
 }
 
 function closeModal(e) {
@@ -320,25 +558,43 @@ function saveCard() {
 
 /* ── CREATE MODAL ────────────────────── */
 function openCreateModal() {
-  document.getElementById('createModal').classList.remove('hidden');
+  const modal = document.getElementById('createModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
 }
 
 function closeCreateModal(e) {
-  if (!e || e.target === document.getElementById('createModal')) {
-    document.getElementById('createModal').classList.add('hidden');
+  const modal = document.getElementById('createModal');
+  if (!modal) return;
+  if (!e || e.target === modal) {
+    modal.style.opacity   = '0';
+    modal.style.transition= 'opacity .16s ease';
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.style.opacity   = '';
+      modal.style.transition= '';
+    }, 170);
   }
 }
 
 function createTask() {
   const title = document.getElementById('newTitle').value.trim();
-  if (!title) { document.getElementById('newTitle').focus(); return; }
+  if (!title) {
+    const inp = document.getElementById('newTitle');
+    inp.style.borderColor = '#ef4444';
+    inp.style.boxShadow   = '0 0 0 3px rgba(239,68,68,.1)';
+    inp.focus();
+    setTimeout(() => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, 1200);
+    return;
+  }
 
-  const status         = document.getElementById('newStatus').value;
-  const type           = document.getElementById('newType').value;
-  const select         = document.getElementById('newAssignee');
-  const assigneeId     = select.value;
-  const assigneeName   = select.selectedOptions[0]?.dataset.name    || '';
-  const assigneeInitial= select.selectedOptions[0]?.dataset.initial || '';
+  const status          = document.getElementById('newStatus').value;
+  const type            = document.getElementById('newType').value;
+  const priority        = document.getElementById('newPriority').value;
+  const select          = document.getElementById('newAssignee');
+  const assigneeId      = select.value;
+  const assigneeName    = select.selectedOptions[0]?.dataset.name    || '';
+  const assigneeInitial = select.selectedOptions[0]?.dataset.initial || '';
 
   const colors  = ['av-blue', 'av-green', 'av-red', 'av-orange', 'av-purple'];
   const avClass = assigneeId ? colors[parseInt(assigneeId) % colors.length] : 'av-blue';
@@ -356,7 +612,7 @@ function createTask() {
   card.addEventListener('dragstart', drag);
 
   card.innerHTML = `
-    <div class="card-priority prio-medium"></div>
+    <div class="card-priority prio-${priority}"></div>
     <p class="card-title">${escapeHTML(title)}</p>
     <div class="card-meta">
       <span class="tag tag-${type}">${capitalize(type)}</span>
@@ -369,10 +625,16 @@ function createTask() {
   cardData['t' + taskCounter] = {
     id, title, type: capitalize(type),
     assigneeId, assignee: assigneeInitial,
-    name: assigneeName, av: avClass, status, priority: 'Medium'
+    name: assigneeName, av: avClass, status, priority: capitalize(priority)
   };
 
-  document.getElementById('cards-' + status).appendChild(card);
+  const target = document.getElementById('cards-' + status);
+  if (target) {
+    target.appendChild(card);
+    // pop-in animation
+    card.style.animation = 'cardDropIn .3s cubic-bezier(.4,0,.2,1)';
+  }
+
   updateCounts();
   closeCreateModal();
   document.getElementById('newTitle').value = '';
@@ -397,7 +659,7 @@ function toggleNotif() {
 document.addEventListener('click', (e) => {
   if (notifOpen && !e.target.closest('.notif-btn') && !e.target.closest('.notif-dropdown')) {
     notifOpen = false;
-    document.getElementById('notifDropdown').classList.add('hidden');
+    document.getElementById('notifDropdown')?.classList.add('hidden');
   }
 });
 
@@ -411,6 +673,7 @@ function addComment() {
   const list = document.getElementById('commentList');
   const item = document.createElement('div');
   item.className = 'comment-item';
+  item.style.animation = 'cmFadeIn .2s ease';
   item.innerHTML = `
     <div class="avatar av-blue av-sm">J</div>
     <div class="comment-body">
@@ -427,7 +690,11 @@ function addComment() {
 /* ── TOAST ───────────────────────────── */
 function showToast(msg) {
   const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
+  if (existing) {
+    existing.style.transition = 'opacity .15s ease';
+    existing.style.opacity    = '0';
+    setTimeout(() => existing.remove(), 160);
+  }
   const t = document.createElement('div');
   t.className   = 'toast';
   t.textContent = msg;

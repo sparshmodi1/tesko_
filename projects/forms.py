@@ -20,7 +20,7 @@ class CreateTaskForm(forms.ModelForm):
 class EditTaskForm(forms.ModelForm):
     class Meta:
         model = createTask
-        fields = ['status', 'type', 'assignee', 'description']
+        fields = ['title', 'status', 'type', 'priority', 'assignee', 'description', 'due_date', 'estimate']
         widgets = {
             'status': forms.Select(attrs={
                 'class': 'modal-select'
@@ -38,16 +38,19 @@ class EditTaskForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, workspace=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['assignee'].queryset = User.objects.filter(is_active=True)
+        if workspace:
+            self.fields['assignee'].queryset = workspace.members.all()
+        else:
+            self.fields['assignee'].queryset = User.objects.filter(is_active=True)
         self.fields['assignee'].label_from_instance = lambda obj: f"{obj.first_name or obj.username} ({(obj.first_name or obj.username)[:1]})"
 
 
 class BacklogTaskForm(forms.ModelForm):
     class Meta:
         model = createTask
-        exclude = ['workspace']
+        exclude = ['workspace', 'in_backlog', 'reporter']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'create-input',
@@ -96,8 +99,12 @@ class BacklogTaskForm(forms.ModelForm):
         return estimate
     
     def __init__(self, *args, **kwargs):
+        self.workspace = kwargs.pop('workspace', None)
         super().__init__(*args, **kwargs)
-        self.fields['assignee'].queryset = User.objects.filter(is_active=True)
+        if self.workspace:
+            self.fields['assignee'].queryset = self.workspace.members.all()  # filter by workspace members
+        else:
+            self.fields['assignee'].queryset = User.objects.filter(is_active=True)
         
     
 class CreateWorkspaceForm(forms.ModelForm):

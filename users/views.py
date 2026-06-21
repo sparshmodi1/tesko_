@@ -1,12 +1,28 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.db.models import Q
 from projects.models import Workspace
 
 
+def is_superior_user(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def sync_superior_workspace_memberships():
+    superior_users = User.objects.filter(is_active=True).filter(is_staff=True) | User.objects.filter(is_active=True).filter(is_superuser=True)
+    superior_users = superior_users.distinct()
+    if not superior_users.exists():
+        return
+
+    for workspace in Workspace.objects.all():
+        workspace.members.add(*superior_users)
+
+
 def get_user_workspace(user):
-    return Workspace.objects.filter(Q(members=user) | Q(creator=user)).first()
+    if is_superior_user(user):
+        sync_superior_workspace_memberships()
+        return Workspace.objects.first()
+    return Workspace.objects.filter(members=user).first()
 
 
 def login_view(request):

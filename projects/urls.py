@@ -1,3 +1,4 @@
+from .views import add_comment
 from django.urls import path
 from .views import *
 
@@ -13,11 +14,12 @@ urlpatterns = [
     path('backlog/', backlog_view, name='backlog'),
     path('code/', code_view, name='code'),
     path('members/', members, name='members'),
-    path('time-tracking/', time_tracking, name='timetracking'),
-    path('project-settings/', project_settings, name='projectsettings'),
+    path('time-tracking/', time_tracking, name='timetracking'),    
     path('profile/', profile, name='profile'),
     path('onboard/', onboard, name="onboard"),
     path('join/', join_workspace, name='join_workspace'),
+    path('workspace/set-lead/', set_workspace_lead, name='set_workspace_lead'),
+    path('workspace/<int:workspace_id>/members/<int:user_id>/remove/', remove_workspace_member, name='remove_workspace_member'),
     path('workspace/<int:workspace_id>/switch/', switch_workspace, name='switch_workspace'),
     path('workspace/<int:workspace_id>/leave/', leave_workspace, name='leave_workspace'),
     path('code/connect/', save_github_repo, name="save_github_repo"),
@@ -36,9 +38,10 @@ urlpatterns = [
     path('code/github/contents', github_contents_api),
     path('task/<int:task_id>/delete/', delete_task, name='delete_task'),
     path('create/', create_workspace, name='create_workspace'),
+    path('task/<int:task_id>/comments/', get_comments, name='get_comments'),
     path('task/<int:task_id>/comment/', add_comment, name='add_comment'),
     path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
     path('task/<int:task_id>/due-date/', set_due_date, name='set_due_date'),
     path('task/<int:task_id>/due-date/clear/', clear_due_date, name='clear_due_date'),
-    path('comments/', comments_view, name='comments'),
+    path('task/<int:task_id>/update-field/', update_task_field, name='update_task_field'),
 ]
