@@ -11,11 +11,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from .forms import EditTaskForm
+from .forms import EditTaskForm, UserUpdateForm, ProfileUpdateForm
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from .models import createTask, TaskComment
-
+from django.contrib.auth import update_session_auth_hash
 from .forms import BacklogTaskForm, CreateTaskForm, CreateWorkspaceForm, EditTaskForm
 from .models import GitHubRepositoryConnection, Workspace, createTask
 
@@ -149,20 +149,12 @@ def github_request(repo, endpoint='', params=None):
         raise GitHubAPIError('GitHub request timed out.', 504)
 
 
-def connected_github_repo(request):
-    connection = GitHubRepositoryConnection.objects.filter(user=request.user).first()
-    if connection:
-        return connection.repo
-
-    session_repo = normalize_github_repo(request.session.get('github_repo', ''))
-    if session_repo:
-        GitHubRepositoryConnection.objects.update_or_create(
-            user=request.user,
-            defaults={'repo': session_repo},
-        )
-        return session_repo
-
-    return ''
+def connected_github_repo(workspace):
+    """Returns repo string for a workspace, or None."""
+    try:
+        return workspace.github_connection.repo
+    except GitHubRepositoryConnection.DoesNotExist:
+        return None
 
 
 def github_json_response(data, status=200):
@@ -170,7 +162,8 @@ def github_json_response(data, status=200):
 
 
 def github_proxy_response(request, endpoint='', params=None):
-    repo = connected_github_repo(request)
+    workspace = workspace_for_request(request)
+    repo = connected_github_repo(workspace) if workspace else None
     if not repo:
         return JsonResponse({'error': 'No GitHub repository is connected yet.'}, status=400)
 
@@ -192,10 +185,6 @@ def int_param(request, name, default, maximum=100):
 def home_view(request):
     return render(request, 'home.html')
 
-@login_required
-def roadmap_view(request):
-    return render(request, 'roadmap.html')
-
 
 def landing_view(request):
     return render(request, 'landing.html')
@@ -213,10 +202,6 @@ def backlog_view(request):
         if not can_manage_workspace(request.user, workspace):
             messages.error(request, "Only the workspace admin or lead can create backlog issues.")
             return redirect('backlog')
-    
-    print("POST DATA:", request.POST)
-    print("FORM VALID:", form.is_valid())
-    print("FORM ERRORS:", form.errors)
     
 
     if request.method == "POST" and form.is_valid():
@@ -286,8 +271,21 @@ def update_task_status(request, task_id):
 
 @login_required
 def code_view(request):
+    workspace = workspace_for_request(request)
+    if not workspace:
+        return redirect('onboard')
+
+    github_repo = connected_github_repo(workspace)
+    can_manage = can_manage_github(request.user, workspace)
+
+    # TEMP DEBUG
+    print("DEBUG github_repo:", github_repo)
+    print("DEBUG can_manage_github:", can_manage)
+
     return render(request, 'code.html', {
-        'github_repo': connected_github_repo(request),
+        'github_repo': github_repo,
+        'workspace': workspace,
+        'can_manage_github': can_manage,
     })
 
 @login_required
@@ -317,12 +315,12 @@ def members(request):
     })
 
 @login_required
-def time_tracking(request):
-    return render(request, 'time_tracking.html')
-
-@login_required
 def profile(request):
-    return render(request, 'profile.html')
+    workspace = workspace_for_request(request)
+    return render(request, 'profile.html', {
+        'workspace': workspace,
+        'can_manage_workspace': can_manage_workspace(request.user, workspace),
+    })
 
 @login_required
 def board_view(request):
@@ -528,24 +526,42 @@ def join_workspace(request):
 @login_required
 @require_POST
 def save_github_repo(request):
+    workspace = workspace_for_request(request)
+
+    if not workspace:
+        return redirect('onboard')
+
+    if not can_manage_github(request.user, workspace):
+        messages.error(request, "Only the workspace lead or admin can connect a repository.")
+        return redirect('code')
+
     repo = normalize_github_repo(request.POST.get('github_repo', ''))
     if not repo:
-        messages.error(request, 'Enter a valid GitHub repository like owner/repo.')
+        messages.error(request, "Enter a valid GitHub repository (e.g. owner/repo-name).")
         return redirect('code')
 
     GitHubRepositoryConnection.objects.update_or_create(
-        user=request.user,
-        defaults={'repo': repo},
+        workspace=workspace,
+        defaults={'repo': repo, 'connected_by': request.user},
     )
-    request.session['github_repo'] = repo
+    messages.success(request, f"Connected to {repo}.")
     return redirect('code')
 
 
 @login_required
 @require_POST
 def disconnect_github_repo(request):
-    GitHubRepositoryConnection.objects.filter(user=request.user).delete()
-    request.session.pop('github_repo', None)
+    workspace = workspace_for_request(request)
+
+    if not workspace:
+        return redirect('onboard')
+
+    if not can_manage_github(request.user, workspace):
+        messages.error(request, "Only the workspace lead or admin can disconnect a repository.")
+        return redirect('code')
+
+    GitHubRepositoryConnection.objects.filter(workspace=workspace).delete()
+    messages.success(request, "Repository disconnected.")
     return redirect('code')
 
 
@@ -764,3 +780,71 @@ def delete_workspace(request, workspace_id):
                 return redirect('onboard')
     
     return redirect('home')
+
+def get_user_workspace_role(user, workspace):
+    """Returns 'superuser', 'lead', or 'member'. None if not in workspace."""
+    if not workspace.members.filter(pk=user.pk).exists():
+        return None
+    if user.is_superuser or user.is_staff:
+        return 'superuser'
+    if workspace.lead == user or workspace.creator == user:
+        return 'lead'
+    return 'member'
+
+def can_manage_github(user, workspace):
+    role = get_user_workspace_role(user, workspace)
+    return role in ('superuser', 'lead')
+
+
+@login_required
+@require_POST
+def update_profile(request):
+    user = request.user
+    user.first_name = request.POST.get('first_name', '').strip()
+    user.last_name = request.POST.get('last_name', '').strip()
+    user.save()
+    messages.success(request, 'Profile updated.')
+    return redirect('profile')
+
+@login_required
+@require_POST
+def change_password(request):
+    user = request.user
+    current = request.POST.get('current_password')
+    new1 = request.POST.get('new_password1')
+    new2 = request.POST.get('new_password2')
+
+    if not user.check_password(current):
+        messages.error(request, 'Current password is incorrect.')
+    elif new1 != new2:
+        messages.error(request, 'New passwords do not match.')
+    elif len(new1) < 8:
+        messages.error(request, 'Password must be at least 8 characters.')
+    elif not re.search(r'[A-Z]', new1):
+        messages.error(request, 'Password must contain at least one uppercase letter.')
+    elif not re.search(r'[a-z]', new1):
+        messages.error(request, 'Password must contain at least one lowercase letter.')
+    elif not re.search(r'\d', new1):
+        messages.error(request, 'Password must contain at least one number.')
+    elif not re.search(r'[!@#$%^&*(),.?":{}|<>]', new1):
+        messages.error(request, 'Password must contain at least one special character.')
+    else:
+        user.set_password(new1)
+        user.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, 'Password updated successfully.')
+
+    return redirect('profile')
+
+@login_required
+@require_POST
+def update_workspace(request):
+    workspace = workspace_for_request(request)
+    if not can_manage_workspace(request.user, workspace):
+        messages.error(request, 'Permission denied.')
+        return redirect('profile')
+    workspace.workspaceName = request.POST.get('name', workspace.workspaceName).strip()
+    workspace.typeofws = request.POST.get('type', workspace.typeofws)
+    workspace.save()
+    messages.success(request, 'Workspace updated.')
+    return redirect('profile')

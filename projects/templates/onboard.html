@@ -35,21 +35,6 @@
   --accent: #6366f1;
 }
 
-/* Dark theme */
-[data-theme="dark"] {
-  --bg: #0f172a;
-  --surface: #111827;
-  --surface2: #1f2937;
-  --border: rgba(255,255,255,0.08);
-  --border-hover: rgba(255,255,255,0.15);
-
-  --text: #f9fafb;
-  --text-muted: #9ca3af;
-  --text-sub: #d1d5db;
-
-  --accent: #6366f1;
-}
-
   body {
     background: var(--surface);
     color: var(--text);
@@ -579,12 +564,13 @@
     </svg>
     Tesko
   </div>
-  <div class="nav-user">
+ <div class="nav-user">
     {% if request.user.is_authenticated %}
       <span class="nav-name">{{ request.user.get_full_name|default:request.user.username }}</span>
       <div class="avatar-circle">{{ request.user.username|slice:":1"|upper }}</div>
       <a href="{% url 'logout' %}" class="logout-link">Log out</a>
     {% endif %}
+    <button onclick="toggleTheme()" id="themeBtn" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);"></button>
   </div>
 </nav>
 
@@ -784,9 +770,18 @@
     this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
   });
 
-  function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-  }
+  // remove setTheme, replace with:
+  window.onload = function() {
+    const saved = localStorage.getItem('theme');
+    const btn = document.getElementById('themeBtn');
+    if (saved === 'light') {
+      document.body.classList.add('light-theme');
+      if (btn) btn.textContent = '⏾';
+    } else {
+      if (btn) btn.textContent = '☀';
+    }
+  };
 </script>
+<script src="{% static 'js/home.js' %}"></script>
 </body>
 </html>

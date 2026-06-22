@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import createTask, Workspace
+from .models import createTask, Workspace, UserProfile
 
 class CreateTaskForm(forms.ModelForm):
     class Meta:
@@ -123,3 +123,13 @@ class CreateWorkspaceForm(forms.ModelForm):
                 'id': 'wsTypeVal'
             }),
         }
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['avatar', 'bio', 'job_title', 'location']

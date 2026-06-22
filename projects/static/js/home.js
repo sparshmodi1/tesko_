@@ -197,41 +197,6 @@ function filterCards(query) {
   });
 }
 
-function filterByAssignee(userId) {
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-
-  const allTasks = document.querySelectorAll('.kanban-card');
-  let counts = { todo: 0, in_progress: 0, done: 0, in_review: 0, total: 0 };
-
-  allTasks.forEach(task => {
-    const match = userId === 'all' || task.dataset.assigneeId === String(userId);
-    if (match) {
-      task.style.display = 'block';
-      task.style.opacity = '1';
-      counts.total++;
-      const col = task.dataset.col;
-      if (counts[col] !== undefined) counts[col]++;
-    } else {
-      task.style.opacity = '0.3';
-      task.style.pointerEvents = 'none';
-      task.style.display = 'block';
-    }
-  });
-
-  document.querySelector('.count-total').textContent    = counts.total;
-  document.querySelector('.count-todo').textContent     = counts.todo;
-  document.querySelector('.count-progress').textContent = counts.in_progress;
-  document.querySelector('.count-review').textContent   = counts.in_review;
-  document.querySelector('.count-done').textContent     = counts.done;
-
-  document.querySelector('.badge-todo').textContent     = counts.todo;
-  document.querySelector('.badge-progress').textContent = counts.in_progress;
-  document.querySelector('.badge-done').textContent     = counts.done;
-  document.querySelector('.badge-review').textContent   = counts.in_review;
-}
-
-
 /* ── VIEW TOGGLE ─────────────────────── */
 function switchView(view) {
   const board = document.getElementById('boardView');
@@ -755,3 +720,74 @@ function initStatusCard(status) {
   });
   switchStatus(status || 'todo');
 }
+
+function switchStatus(status) {
+    document.querySelectorAll('.sc-tab').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.status === status)
+    );
+    document.querySelectorAll('.sc-body').forEach(body =>
+      body.style.display = body.id === 'sc-' + status ? 'block' : 'none'
+    );
+    const select = document.querySelector('#id_status');
+    if (select) select.value = status;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const select = document.querySelector('#id_status');
+    if (select) {
+      switchStatus(select.value || 'todo');
+      select.addEventListener('change', e => switchStatus(e.target.value));
+    }
+    document.querySelectorAll('.cm-label-tag').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.hasAttribute('disabled')) return;
+        btn.classList.toggle('selected');
+      });
+    });
+  });
+
+  function toggleAvDropdown() {
+    var drop = document.getElementById('avDropdown');
+    drop.style.display = drop.style.display === 'none' ? 'block' : 'none';
+  }
+
+  document.addEventListener('click', function(e) {
+    var drop = document.getElementById('avDropdown');
+    var btn = document.getElementById('avMoreBtn');
+    if (drop && btn && !drop.contains(e.target) && !btn.contains(e.target)) {
+      drop.style.display = 'none';
+    }
+  });
+
+  function filterByAssignee(event, userId, userName) {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    const allTasks = document.querySelectorAll('.kanban-card');
+    let counts = { todo: 0, in_progress: 0, done: 0, in_review: 0, total: 0 };
+
+    allTasks.forEach(task => {
+      const match = userId === 'all' || task.dataset.assigneeId === String(userId);
+      if (match) {
+        task.style.display = 'block';
+        task.style.opacity = '1';
+        task.style.pointerEvents = 'auto';
+        counts.total++;
+        const col = task.dataset.col;
+        if (counts[col] !== undefined) counts[col]++;
+      } else {
+        task.style.display = 'none';
+      }
+    });
+
+    document.querySelector('.count-total').textContent    = counts.total;
+    document.querySelector('.count-todo').textContent     = counts.todo;
+    document.querySelector('.count-progress').textContent = counts.in_progress;
+    document.querySelector('.count-review').textContent   = counts.in_review;
+    document.querySelector('.count-done').textContent     = counts.done;
+
+    document.querySelector('.badge-todo').textContent     = counts.todo;
+    document.querySelector('.badge-progress').textContent = counts.in_progress;
+    document.querySelector('.badge-done').textContent     = counts.done;
+    document.querySelector('.badge-review').textContent   = counts.in_review;
+  }

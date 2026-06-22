@@ -45,7 +45,7 @@
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  background: rgba(242,100,25,0.12);
+  background: rgba(76, 25, 242, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,7 +90,7 @@
 
 .gh-link-btn:hover {
   border-color: var(--accent);
-  background: rgba(242,100,25,0.06);
+  background: rgba(76, 25, 242, 0.06);
   color: var(--accent);
 }
 
@@ -386,7 +386,7 @@
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 10px;
-  background: rgba(242,100,25,0.12);
+  background: rgba(76, 25, 242, 0.06);
   color: var(--accent);
   font-weight: 600;
   font-family: 'DM Sans', sans-serif;
@@ -437,7 +437,7 @@
 }
 
 .pr-status-dot.merged { background: #a855f7; }
-.pr-status-dot.closed { background: #ef4444; }
+.pr-status-dot.closed { background: #6366f1; }
 
 .pr-body { flex: 1; }
 
@@ -643,8 +643,8 @@
 }
 
 .connect-banner {
-  background: rgba(242,100,25,0.06);
-  border: 1px solid rgba(242,100,25,0.2);
+  background: rgba(76, 25, 242, 0.06);
+  border: 1px solid #6366f1;
   border-radius: var(--radius-md);
   padding: 12px 18px;
   display: flex;
@@ -694,16 +694,12 @@
       </div>
       <div class="brand-right">
         <span class="brand-name">Tesko</span>
-        <button class="theme-icon-btn" onclick="toggleTheme()" id="themeBtn"></button>
+        <button class="theme-icon-btn" type="button" onclick="toggleTheme()" id="themeBtn"></button>
       </div>
     </div>
 
     <nav class="sidebar-nav">
       <div class="nav-section-label">PROJECT</div>
-      <a href="{% url 'roadmap' %}" class="nav-item {% if page_id == 'board' %}active{% endif %}">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="11" width="6" height="4" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
-        Roadmap
-      </a>
       <a href="{% url 'home' %}" class="nav-item">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="11" width="6" height="4" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
         Board
@@ -753,164 +749,124 @@
     <!-- CODE MAIN -->
     <main class="code-main">
 
-      <!-- If no repo connected yet, show setup. Otherwise show repo UI. -->
-      <!-- Django: pass `github_repo` context var (e.g. "owner/repo-name") from view -->
-      <!-- When github_repo is empty, show setup card; else show the live data UI -->
-
       {% if not github_repo %}
 
-      <!-- ── NO REPO CONNECTED ── -->
-      <div class="repo-header">
-        <div>
-          <h1 class="board-title">Code</h1>
-          <p class="board-subtitle">Connect a GitHub repository to track commits, branches, files, and PRs</p>
-        </div>
-      </div>
-
-      {% if messages %}
-        {% for message in messages %}
-          <div class="connect-banner"><strong>{{ message }}</strong></div>
-        {% endfor %}
-      {% endif %}
-
-      <div class="setup-card">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-        </svg>
-        <h3>Connect your GitHub repository</h3>
-        <p>Paste your GitHub repo URL below. Tesko will pull commits, branches, pull requests, contributors, and team files from GitHub.</p>
-        <form method="POST" action="{% url 'save_github_repo' %}">
-          {% csrf_token %}
-          <div class="setup-input-row">
-            <input class="setup-input" type="text" name="github_repo" placeholder="owner/repository-name" required>
-            <button type="submit" class="create-btn" style="white-space:nowrap">Connect</button>
+        <div class="repo-header">
+          <div>
+            <h1 class="board-title">Code</h1>
+            <p class="board-subtitle">Connect a GitHub repository to track commits, branches, files, and PRs</p>
           </div>
-        </form>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Example: <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">your-username/tesko-app</span></p>
-      </div>
+        </div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="connect-banner"><strong>{{ message }}</strong></div>
+          {% endfor %}
+        {% endif %}
+
+        {% if can_manage_github %}
+        <div class="setup-card">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
+          <h3>Connect your GitHub repository</h3>
+          <p>Paste your GitHub repo URL below. Tesko will pull commits, branches, pull requests, contributors, and team files from GitHub.</p>
+          <form method="POST" action="{% url 'save_github_repo' %}">
+            {% csrf_token %}
+            <div class="setup-input-row">
+              <input class="setup-input" type="text" name="github_repo" placeholder="owner/repository-name" required>
+              <button type="submit" class="create-btn" style="white-space:nowrap">Connect</button>
+            </div>
+          </form>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Example: <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">your-username/tesko-app</span></p>
+        </div>
+        {% else %}
+        <div class="setup-card">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
+          <h3>No repository connected</h3>
+          <p>Your workspace lead or admin hasn't connected a GitHub repository yet. Ask them to connect one so the team can track commits, branches, and pull requests here.</p>
+        </div>
+        {% endif %}
 
       {% else %}
 
-      <!-- ── REPO CONNECTED ── -->
-
-      <!-- BANNER: change repo -->
-      <div class="connect-banner">
-        <span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" style="margin-right:6px;vertical-align:middle"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-          Connected to <strong>{{ github_repo }}</strong>
-        </span>
-        <form method="POST" action="{% url 'disconnect_github_repo' %}">
-          {% csrf_token %}
-          <button type="submit" class="gh-link-btn" style="font-size:12px;padding:5px 12px">Change repo</button>
-        </form>
-      </div>
-
-      <!-- REPO HEADER -->
-      <div class="repo-header">
-        <div class="repo-title-row">
-          <div class="repo-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round">
+        <!-- BANNER -->
+        <div class="connect-banner">
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" style="margin-right:6px;vertical-align:middle">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
             </svg>
+            Connected to <strong>{{ github_repo }}</strong>
+          </span>
+          {% if can_manage_github %}
+          <form method="POST" action="{% url 'disconnect_github_repo' %}">
+            {% csrf_token %}
+            <button type="submit" class="gh-link-btn" style="font-size:12px;padding:5px 12px">Change repo</button>
+          </form>
+          {% endif %}
+        </div>
+
+        <!-- REPO HEADER -->
+        <div class="repo-header">
+          <div class="repo-title-row">
+            <div class="repo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+              </svg>
+            </div>
+            <div>
+              <div class="repo-name" id="repoDisplayName">{{ github_repo }}</div>
+              <div class="repo-sub" id="repoDesc">Loading…</div>
+            </div>
           </div>
-          <div>
-            <div class="repo-name" id="repoDisplayName">{{ github_repo }}</div>
-            <div class="repo-sub" id="repoDesc">Loading…</div>
+          <div class="repo-actions">
+            <a class="gh-link-btn" href="https://github.com/{{ github_repo }}" target="_blank" rel="noopener">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              Open on GitHub
+            </a>
           </div>
         </div>
-        <div class="repo-actions">
-          <a class="gh-link-btn" href="https://github.com/{{ github_repo }}" target="_blank" rel="noopener">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            Open on GitHub
-          </a>
-        </div>
-      </div>
 
-      <!-- STAT STRIP -->
-      <div class="stat-strip" id="statStrip">
-        <div class="stat-pill">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-          <span>Loading stats…</span>
+        <!-- STAT STRIP -->
+        <div class="stat-strip" id="statStrip">
+          <div class="stat-pill"><span>Loading stats…</span></div>
         </div>
-      </div>
 
-      <!-- TABS -->
-      <div class="code-tabs">
-        <button class="code-tab active" onclick="switchTab('commits', this)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>
-          Commits
-          <span class="tab-count" id="tc-commits">—</span>
-        </button>
-        <button class="code-tab" onclick="switchTab('branches', this)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
-          Branches
-          <span class="tab-count" id="tc-branches">—</span>
-        </button>
-        <button class="code-tab" onclick="switchTab('files', this)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h5l2 3h11v9a2 2 0 0 1-2 2H3z"/><path d="M3 7V5a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v2"/></svg>
-          Files
-          <span class="tab-count" id="tc-files">-</span>
-        </button>
-        <button class="code-tab" onclick="switchTab('prs', this)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
-          Pull Requests
-          <span class="tab-count" id="tc-prs">—</span>
-        </button>
-        <button class="code-tab" onclick="switchTab('contributors', this)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Contributors
-          <span class="tab-count" id="tc-contributors">—</span>
-        </button>
-      </div>
+        <!-- TABS -->
+        <div class="code-tabs">
+          <button class="code-tab active" onclick="switchTab('commits', this)">Commits <span class="tab-count" id="tc-commits">—</span></button>
+          <button class="code-tab" onclick="switchTab('branches', this)">Branches <span class="tab-count" id="tc-branches">—</span></button>
+          <button class="code-tab" onclick="switchTab('files', this)">Files <span class="tab-count" id="tc-files">-</span></button>
+          <button class="code-tab" onclick="switchTab('prs', this)">Pull Requests <span class="tab-count" id="tc-prs">—</span></button>
+          <button class="code-tab" onclick="switchTab('contributors', this)">Contributors <span class="tab-count" id="tc-contributors">—</span></button>
+        </div>
 
-      <!-- COMMITS TAB -->
-      <div class="tab-panel active" id="panel-commits">
-        <div class="gh-state" id="loading-commits">
-          <div class="spinner"></div>
-          <span>Fetching commits from GitHub…</span>
+        <div class="tab-panel active" id="panel-commits">
+          <div class="gh-state" id="loading-commits"><div class="spinner"></div><span>Fetching commits…</span></div>
+          <div id="commits-content" style="display:none"></div>
         </div>
-        <div id="commits-content" style="display:none"></div>
-      </div>
-
-      <!-- BRANCHES TAB -->
-      <div class="tab-panel" id="panel-branches">
-        <div class="gh-state" id="loading-branches">
-          <div class="spinner"></div>
-          <span>Fetching branches…</span>
+        <div class="tab-panel" id="panel-branches">
+          <div class="gh-state" id="loading-branches"><div class="spinner"></div><span>Fetching branches…</span></div>
+          <div id="branches-content" style="display:none"></div>
         </div>
-        <div id="branches-content" style="display:none"></div>
-      </div>
-
-      <!-- FILES TAB -->
-      <div class="tab-panel" id="panel-files">
-        <div class="file-toolbar">
-          <div class="file-breadcrumbs" id="files-breadcrumbs"></div>
-          <button class="file-back" id="files-back" type="button" onclick="goUpFiles()" disabled>Back</button>
+        <div class="tab-panel" id="panel-files">
+          <div class="file-toolbar">
+            <div class="file-breadcrumbs" id="files-breadcrumbs"></div>
+            <button class="file-back" id="files-back" type="button" onclick="goUpFiles()" disabled>Back</button>
+          </div>
+          <div class="gh-state" id="loading-files"><div class="spinner"></div><span>Fetching files...</span></div>
+          <div id="files-content" style="display:none"></div>
         </div>
-        <div class="gh-state" id="loading-files">
-          <div class="spinner"></div>
-          <span>Fetching files...</span>
+        <div class="tab-panel" id="panel-prs">
+          <div class="gh-state" id="loading-prs"><div class="spinner"></div><span>Fetching pull requests…</span></div>
+          <div id="prs-content" style="display:none"></div>
         </div>
-        <div id="files-content" style="display:none"></div>
-      </div>
-
-      <!-- PRs TAB -->
-      <div class="tab-panel" id="panel-prs">
-        <div class="gh-state" id="loading-prs">
-          <div class="spinner"></div>
-          <span>Fetching pull requests…</span>
+        <div class="tab-panel" id="panel-contributors">
+          <div class="gh-state" id="loading-contributors"><div class="spinner"></div><span>Fetching contributors…</span></div>
+          <div id="contributors-content" style="display:none"></div>
         </div>
-        <div id="prs-content" style="display:none"></div>
-      </div>
-
-      <!-- CONTRIBUTORS TAB -->
-      <div class="tab-panel" id="panel-contributors">
-        <div class="gh-state" id="loading-contributors">
-          <div class="spinner"></div>
-          <span>Fetching contributors…</span>
-        </div>
-        <div id="contributors-content" style="display:none"></div>
-      </div>
 
       {% endif %}
 
@@ -923,7 +879,6 @@
 const REPO = "{{ github_repo }}";
 const GH_API = "{% url 'github_repo_api_base' %}";
 
-// ── TAB SWITCHER ──
 function switchTab(name, btn) {
   document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -931,7 +886,6 @@ function switchTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
 }
 
-// ── TIME AGO ──
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr)) / 1000;
   if (diff < 60) return 'just now';
@@ -950,48 +904,40 @@ function escapeHTML(value) {
     .replace(/'/g, '&#039;');
 }
 
-// ── HIGHLIGHT TASK IDs in commit messages ──
 function highlightMsg(msg) {
   return escapeHTML(msg).replace(/(TES-\d+)/g, '<span class="task-ref">$1</span>');
 }
 
-// ── FETCH REPO INFO & STATS ──
 async function loadRepoInfo() {
   try {
-    const r = await fetch(GH_API);
+    const r = await fetch(GH_API, { credentials: 'same-origin' });
     const d = await r.json();
     if (d.description) document.getElementById('repoDesc').textContent = d.description;
     else document.getElementById('repoDesc').textContent = d.full_name;
-
-    // Build stat strip
     const strip = document.getElementById('statStrip');
     strip.innerHTML = `
-      <div class="stat-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg><strong>${d.forks_count}</strong> Forks</div>
-      <div class="stat-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><strong>${d.stargazers_count}</strong> Stars</div>
-      <div class="stat-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><strong>${d.language || 'Mixed'}</strong></div>
-      <div class="stat-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><strong>${d.license ? d.license.spdx_id : 'No license'}</strong></div>
-      <div class="stat-pill accent"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><strong>${d.open_issues_count}</strong> Open Issues</div>
+      <div class="stat-pill"><strong>${d.forks_count}</strong> Forks</div>
+      <div class="stat-pill"><strong>${d.stargazers_count}</strong> Stars</div>
+      <div class="stat-pill"><strong>${d.language || 'Mixed'}</strong></div>
+      <div class="stat-pill"><strong>${d.license ? d.license.spdx_id : 'No license'}</strong></div>
+      <div class="stat-pill accent"><strong>${d.open_issues_count}</strong> Open Issues</div>
     `;
   } catch(e) {
     console.warn('Repo info fetch failed', e);
   }
 }
 
-// ── LOAD COMMITS ──
 async function loadCommits() {
   try {
-    const r = await fetch(GH_API + '/commits?per_page=30');
+    const r = await fetch(GH_API + '/commits?per_page=30', { credentials: 'same-origin' });
     const commits = await r.json();
     document.getElementById('tc-commits').textContent = commits.length >= 30 ? '30+' : commits.length;
-
-    // Group by date
     const groups = {};
     commits.forEach(c => {
       const date = new Date(c.commit.author.date).toDateString();
       if (!groups[date]) groups[date] = [];
       groups[date].push(c);
     });
-
     let html = '<div class="commit-list">';
     for (const [date, list] of Object.entries(groups)) {
       html += `<div class="commit-group-label">Commits on ${date}</div>`;
@@ -1003,7 +949,6 @@ async function loadCommits() {
         const avatarHtml = author && author.avatar_url
           ? `<img src="${author.avatar_url}" alt="${c.commit.author.name}">`
           : c.commit.author.name.slice(0,2).toUpperCase();
-        const profileUrl = author ? author.html_url : '#';
         html += `
           <div class="commit-item">
             <div class="commit-avatar">${avatarHtml}</div>
@@ -1020,44 +965,33 @@ async function loadCommits() {
       });
     }
     html += '</div>';
-
     document.getElementById('loading-commits').style.display = 'none';
     const el = document.getElementById('commits-content');
     el.innerHTML = html;
     el.style.display = 'block';
   } catch(e) {
-    document.getElementById('loading-commits').innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>Could not load commits. Check if the repo is public.</span>`;
+    document.getElementById('loading-commits').innerHTML = `<span>Could not load commits.</span>`;
   }
 }
 
-// ── LOAD BRANCHES ──
 async function loadBranches() {
   try {
-    const r = await fetch(GH_API + '/branches?per_page=30');
+    const r = await fetch(GH_API + '/branches?per_page=30', { credentials: 'same-origin' });
     const branches = await r.json();
     document.getElementById('tc-branches').textContent = branches.length;
-
     let html = '<div class="branch-list">';
     branches.forEach(b => {
-      // Detect task ref in branch name e.g. TES-023-fix-login
       const taskMatch = b.name.match(/(TES-\d+)/i);
-      const taskBadge = taskMatch
-        ? `<span class="branch-task-badge">${taskMatch[1].toUpperCase()}</span>`
-        : '';
-      const defaultBadge = b.name === 'main' || b.name === 'master'
-        ? `<span class="branch-default-badge">default</span>`
-        : '';
+      const taskBadge = taskMatch ? `<span class="branch-task-badge">${taskMatch[1].toUpperCase()}</span>` : '';
+      const defaultBadge = b.name === 'main' || b.name === 'master' ? `<span class="branch-default-badge">default</span>` : '';
       html += `
         <div class="branch-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.4;flex-shrink:0"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
           <span class="branch-name">${b.name}</span>
-          ${defaultBadge}
-          ${taskBadge}
+          ${defaultBadge}${taskBadge}
           <a href="https://github.com/${REPO}/tree/${b.name}" target="_blank" class="gh-link-btn" style="font-size:11px;padding:4px 10px">View ↗</a>
         </div>`;
     });
     html += '</div>';
-
     document.getElementById('loading-branches').style.display = 'none';
     const el = document.getElementById('branches-content');
     el.innerHTML = html;
@@ -1067,54 +1001,44 @@ async function loadBranches() {
   }
 }
 
-// ── LOAD PRs ──
 async function loadPRs() {
   try {
     const [openR, closedR] = await Promise.all([
-      fetch(GH_API + '/pulls?state=open&per_page=10'),
-      fetch(GH_API + '/pulls?state=closed&per_page=10')
+      fetch(GH_API + '/pulls?state=open&per_page=10', { credentials: 'same-origin' }),
+      fetch(GH_API + '/pulls?state=closed&per_page=10', { credentials: 'same-origin' })
     ]);
     const open = await openR.json();
     const closed = await closedR.json();
     const all = [...open, ...closed.slice(0,5)];
     document.getElementById('tc-prs').textContent = open.length + ' open';
-
     if (all.length === 0) {
-      document.getElementById('loading-prs').innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg><span>No pull requests found.</span>`;
+      document.getElementById('loading-prs').innerHTML = `<span>No pull requests found.</span>`;
       return;
     }
-
     let html = '<div class="pr-list">';
     all.forEach(pr => {
       const isOpen = pr.state === 'open';
       const isMerged = pr.merged_at;
       const dotClass = isMerged ? 'merged' : isOpen ? '' : 'closed';
       const stateLabel = isMerged ? 'Merged' : isOpen ? 'Open' : 'Closed';
-      const ago = timeAgo(pr.created_at);
-      const taskMatch = pr.title.match(/(TES-\d+)/i) || (pr.head && pr.head.ref.match(/(TES-\d+)/i));
-
       html += `
         <a class="pr-card" href="${pr.html_url}" target="_blank">
           <div class="pr-status-dot ${dotClass}" title="${stateLabel}"></div>
           <div class="pr-body">
             <div class="pr-title">${highlightMsg(pr.title)}</div>
             <div class="pr-meta">
-              <span>${stateLabel}</span>
-              <span>·</span>
+              <span>${stateLabel}</span><span>·</span>
               <span class="pr-branch">${pr.head ? pr.head.ref : ''}</span>
               <span>→</span>
               <span class="pr-branch">${pr.base ? pr.base.ref : 'main'}</span>
-              <span>·</span>
-              <span>by ${pr.user.login}</span>
-              <span>·</span>
-              <span>${ago}</span>
+              <span>·</span><span>by ${pr.user.login}</span>
+              <span>·</span><span>${timeAgo(pr.created_at)}</span>
             </div>
           </div>
           <span class="pr-num">#${pr.number}</span>
         </a>`;
     });
     html += '</div>';
-
     document.getElementById('loading-prs').style.display = 'none';
     const el = document.getElementById('prs-content');
     el.innerHTML = html;
@@ -1124,13 +1048,11 @@ async function loadPRs() {
   }
 }
 
-// ── LOAD CONTRIBUTORS ──
 async function loadContributors() {
   try {
-    const r = await fetch(GH_API + '/contributors?per_page=20');
+    const r = await fetch(GH_API + '/contributors?per_page=20', { credentials: 'same-origin' });
     const contributors = await r.json();
     document.getElementById('tc-contributors').textContent = contributors.length;
-
     let html = '<div class="contrib-grid">';
     contributors.forEach(c => {
       html += `
@@ -1143,7 +1065,6 @@ async function loadContributors() {
         </a>`;
     });
     html += '</div>';
-
     document.getElementById('loading-contributors').style.display = 'none';
     const el = document.getElementById('contributors-content');
     el.innerHTML = html;
@@ -1153,7 +1074,6 @@ async function loadContributors() {
   }
 }
 
-// ── INIT ──
 let currentFilePath = '';
 
 function formatFileSize(bytes) {
@@ -1164,9 +1084,7 @@ function formatFileSize(bytes) {
 }
 
 function fileIcon(type) {
-  if (type === 'dir') {
-    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h5l2 3h11v9a2 2 0 0 1-2 2H3z"/><path d="M3 7V5a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v2"/></svg>';
-  }
+  if (type === 'dir') return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h5l2 3h11v9a2 2 0 0 1-2 2H3z"/><path d="M3 7V5a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v2"/></svg>';
   return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
 }
 
@@ -1177,16 +1095,13 @@ function escapePathForHandler(path) {
 function renderFileBreadcrumbs(path) {
   const holder = document.getElementById('files-breadcrumbs');
   if (!holder) return;
-
   const parts = path ? path.split('/') : [];
   let html = '<button class="file-crumb" type="button" onclick="loadFiles(\'\')">root</button>';
   let running = '';
-
   parts.forEach(part => {
     running = running ? running + '/' + part : part;
     html += `<span>/</span><button class="file-crumb" type="button" onclick="loadFiles('${escapePathForHandler(running)}')">${escapeHTML(part)}</button>`;
   });
-
   holder.innerHTML = html;
   const back = document.getElementById('files-back');
   if (back) back.disabled = !path;
@@ -1202,44 +1117,30 @@ function goUpFiles() {
 async function loadFiles(path = '') {
   currentFilePath = path;
   renderFileBreadcrumbs(path);
-
   const loader = document.getElementById('loading-files');
   const content = document.getElementById('files-content');
-  if (loader) {
-    loader.style.display = 'flex';
-    loader.innerHTML = '<div class="spinner"></div><span>Fetching files...</span>';
-  }
-  if (content) {
-    content.style.display = 'none';
-    content.innerHTML = '';
-  }
-
+  if (loader) { loader.style.display = 'flex'; loader.innerHTML = '<div class="spinner"></div><span>Fetching files...</span>'; }
+  if (content) { content.style.display = 'none'; content.innerHTML = ''; }
   try {
-    const r = await fetch(GH_API + '/contents?path=' + encodeURIComponent(path));
+    const r = await fetch(GH_API + '/contents?path=' + encodeURIComponent(path), { credentials: 'same-origin' });
     const data = await r.json();
     const files = Array.isArray(data) ? data : [data];
     const sorted = files.sort((a, b) => {
       if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
-
     document.getElementById('tc-files').textContent = sorted.length;
-
     let html = '<div class="file-list">';
     sorted.forEach(item => {
       const isDir = item.type === 'dir';
       const click = isDir ? `onclick="loadFiles('${escapePathForHandler(item.path)}')"` : '';
       const url = isDir ? `https://github.com/${REPO}/tree/HEAD/${item.path}` : item.html_url;
-      const safeName = escapeHTML(item.name);
-      const safePath = escapeHTML(item.path);
-      const meta = isDir ? safePath : `${safePath} - ${formatFileSize(item.size)}`;
-
       html += `
         <div class="file-row">
           <div class="file-icon">${fileIcon(item.type)}</div>
           <div class="file-main">
-            <a class="file-name" href="${isDir ? 'javascript:void(0)' : item.html_url}" ${click} ${isDir ? '' : 'target="_blank" rel="noopener"'}>${safeName}</a>
-            <div class="file-meta">${meta}</div>
+            <a class="file-name" href="${isDir ? 'javascript:void(0)' : item.html_url}" ${click} ${isDir ? '' : 'target="_blank" rel="noopener"'}>${escapeHTML(item.name)}</a>
+            <div class="file-meta">${escapeHTML(item.path)}${!isDir ? ' - ' + formatFileSize(item.size) : ''}</div>
           </div>
           <div class="file-actions">
             <a class="gh-link-btn" href="${url}" target="_blank" rel="noopener" style="font-size:11px;padding:4px 10px">Open</a>
@@ -1248,15 +1149,11 @@ async function loadFiles(path = '') {
         </div>`;
     });
     html += '</div>';
-
     if (loader) loader.style.display = 'none';
-    if (content) {
-      content.innerHTML = html;
-      content.style.display = 'block';
-    }
+    if (content) { content.innerHTML = html; content.style.display = 'block'; }
   } catch(e) {
     document.getElementById('tc-files').textContent = '-';
-    if (loader) loader.innerHTML = '<span>Could not load files for this repository.</span>';
+    if (loader) loader.innerHTML = '<span>Could not load files.</span>';
   }
 }
 
@@ -1269,18 +1166,17 @@ loadFiles();
 
 {% endif %}
 
-// page load pe theme set
 window.onload = function () {
-    const savedTheme = localStorage.getItem("theme");
-    const btn = document.getElementById("themeBtn");
-
-    if (savedTheme === "light") {
-        document.body.classList.add("light-theme");
-        btn.textContent = "⏾";
-    } else {
-        btn.textContent = "☀";
-    }
+  const savedTheme = localStorage.getItem("theme");
+  const btn = document.getElementById("themeBtn");
+  if (savedTheme === "light") {
+    document.body.classList.add("light-theme");
+    btn.textContent = "⏾";
+  } else {
+    btn.textContent = "☀";
+  }
 };
 </script>
+<script src="{% static 'js/home.js' %}"></script>
 </body>
 </html>

@@ -1484,3 +1484,49 @@ body {
   .modal-grid { grid-template-columns: 1fr; }
   .modal-right { border-top: 1px solid var(--border); }
 }
+.dd-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.dd-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.dd-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.av-btn { position: relative; }
+
+.av-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 999;
+}
+
+.av-btn:hover::after { opacity: 1; }

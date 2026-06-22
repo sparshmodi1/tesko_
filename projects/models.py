@@ -118,21 +118,28 @@ class saveChanges(models.Model):
 
 
 class GitHubRepositoryConnection(models.Model):
-    user = models.OneToOneField(
-        User,
+    workspace = models.OneToOneField(
+        Workspace,
         on_delete=models.CASCADE,
         related_name='github_connection',
+    )
+    connected_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='github_connections_made',
     )
     repo = models.CharField(max_length=200)
     connected_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    bio = models.TextField(max_length=300, blank=True)
+    job_title = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} -> {self.repo}"
-    
-class TimeEntry(models.Model):
-    task = models.ForeignKey(createTask, on_delete=models.CASCADE, related_name='time_entries')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    hours = models.DecimalField(max_digits=5, decimal_places=2)
-    note = models.TextField(blank=True)
-    date = models.DateField(auto_now_add=True)
+        return f"{self.user.username}'s profile"
