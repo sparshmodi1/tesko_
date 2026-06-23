@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-vc_u7^k_r4cls-kb8bd_!iwu(b_%j65vw_f58+z$$#vl94%bna
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 GITHUB_TOKEN = config('GITHUB_TOKEN', default='')
 
